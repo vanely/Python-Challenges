@@ -15,3 +15,11 @@
 # If one or both of the arguments are invalid(not given, not in correct format, not in range...etc) return "Input is invalid.".
 # If the player has already reached the target_lvl return "You have already reached level target_lvl.".
 def xp_to_target_lvl(current_xp, target_lvl):
+  not_given = current_xp == None or target_lvl == None
+  incorrect_format = type(current_xp) != int or type(target_lvl) != int
+  not_in_range = current_xp < 0 or target_lvl > 170
+
+  if not_given or incorrect_format or not_in_range:
+    return "Input is invalid."
+  elif current_xp >= target_lvl:
+    return "You have already reached level target_lvl."
