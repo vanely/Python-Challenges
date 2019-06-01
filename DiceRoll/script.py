@@ -1,5 +1,6 @@
 import random
 
+# @param = number of dice to roll
 def dice_roll(number_of_dice):
   dice = []
   roll_sum = 0
@@ -14,6 +15,4 @@ def dice_roll(number_of_dice):
 
   return "{0} \n{1}".format(dice, roll_sum)
 
-rolls_and_sum = dice_roll(3)
-
-print(rolls_and_sum)
+print(dice_roll(3))
