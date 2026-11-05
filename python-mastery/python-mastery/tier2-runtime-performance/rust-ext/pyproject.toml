@@ -1,0 +1,24 @@
+[build-system]
+requires = ["maturin>=1.5,<2"]
+build-backend = "maturin"
+
+[project]
+name = "logparse_rs"
+version = "0.1.0"
+requires-python = ">=3.12"
+classifiers = ["Programming Language :: Rust", "Programming Language :: Python :: 3 :: Only"]
+
+[tool.maturin]
+python-source = "python"
+module-name = "logparse_rs._native"
+features = ["pyo3/extension-module"]
+
+[tool.cibuildwheel]
+build = "cp312-* cp313-*"
+skip = "*-musllinux_i686 *-win32"
+before-all = "curl -sSf https://sh.rustup.rs | sh -s -- -y"
+environment = { PATH = "$HOME/.cargo/bin:$PATH" }
+test-requires = "pytest"
+test-command = "pytest {project}/tests"
+[tool.cibuildwheel.macos]
+before-all = "curl -sSf https://sh.rustup.rs | sh -s -- -y && rustup target add aarch64-apple-darwin x86_64-apple-darwin"
