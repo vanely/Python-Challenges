@@ -18,7 +18,7 @@ async def worker(name: str, steps: int = 5) -> str:
 
 
 async def demo_basic() -> None:
-    print("--- basic: cancel lands at the next suspending await ---")
+    print("--- basic: cancel lands at the await where the task is suspended ---")
     t = asyncio.create_task(worker("A"))
     await asyncio.sleep(0)                     # let it start (runs to first await)
     t.cancel()

@@ -91,7 +91,7 @@ class Fetcher:
         await self._client.aclose()
 
     def stop(self) -> None:
-        """Stop dispatching new requests; in-flight ones continue."""
+        """Stop dispatching new requests and retries; in-flight attempts continue."""
         self._stopping.set()
 
     # --- one URL -----------------------------------------------------------------------------
@@ -100,6 +100,8 @@ class Fetcher:
         attempts = 0
         last_err: str | None = None
         while attempts < self._retries:
+            if attempts and self._stopping.is_set():
+                break                                # stopping: record the last error, no retry
             attempts += 1
             await self._bucket.acquire()
             try:
@@ -156,34 +158,76 @@ class Fetcher:
 
 
 # --- CLI with graceful shutdown ---------------------------------------------------------------------
-async def main(urls: list[str]) -> int:
+def install_signal_handlers(on_signal: Callable[[signal.Signals], None]) -> Callable[[], None]:
+    """SIGINT/SIGTERM -> `on_signal` on the running loop. Returns a function that undoes it.
+
+    POSIX uses `loop.add_signal_handler`. Windows loops don't implement it, so fall back to
+    `signal.signal` + `call_soon_threadsafe`; there only SIGINT (Ctrl-C) is ever delivered —
+    `kill`/`TerminateProcess` is a hard kill, so 143 can't happen on Windows.
+    """
+    loop = asyncio.get_running_loop()
+    sigs = (signal.SIGINT, signal.SIGTERM)
+    try:
+        for s in sigs:
+            loop.add_signal_handler(s, on_signal, s)
+    except NotImplementedError:
+        previous = {s: signal.getsignal(s) for s in sigs}
+        for s in sigs:
+            signal.signal(s, lambda n, _f: loop.call_soon_threadsafe(on_signal, signal.Signals(n)))
+
+        def restore() -> None:
+            for s, h in previous.items():
+                signal.signal(s, h if h is not None else signal.SIG_DFL)
+
+        return restore
+
+    def remove() -> None:
+        for s in sigs:
+            loop.remove_signal_handler(s)
+
+    return remove
+
+
+async def main(urls: list[str], *, grace: float = 2.0) -> int:
     stop = asyncio.Event()
     sig_received: list[int] = []
-    loop = asyncio.get_running_loop()
 
     def on_signal(s: signal.Signals) -> None:
         log.warning("%s received: stopping dispatch, draining in-flight", s.name)
         sig_received.append(int(s))
         stop.set()
 
-    for s in (signal.SIGINT, signal.SIGTERM):
-        loop.add_signal_handler(s, on_signal, s)
-
+    uninstall = install_signal_handlers(on_signal)
     ok = failed = 0
-    async with Fetcher() as f:
+    try:
+        async with Fetcher() as f:
 
-        async def watch() -> None:
-            await stop.wait()
-            f.stop()
+            async def consume() -> None:
+                nonlocal ok, failed
+                async for r in f.fetch_all(urls, deadline=120):
+                    ok += r.ok
+                    failed += not r.ok
+                    log.info("%s %s %.2fs x%d %s", r.url, r.status, r.elapsed, r.attempts, r.error or "")
 
-        watcher = asyncio.create_task(watch())
-        try:
-            async for r in f.fetch_all(urls, deadline=120):
-                ok += r.ok
-                failed += not r.ok
-                log.info("%s %s %.2fs x%d %s", r.url, r.status, r.elapsed, r.attempts, r.error or "")
-        finally:
-            watcher.cancel()
+            consumer = asyncio.create_task(consume())
+            stopper = asyncio.create_task(stop.wait())
+            try:
+                await asyncio.wait([consumer, stopper], return_when=asyncio.FIRST_COMPLETED)
+                if not consumer.done():
+                    f.stop()
+                    _, pending = await asyncio.wait([consumer], timeout=grace)
+                    if pending:
+                        log.error("grace period (%.1fs) expired: cancelling in-flight requests", grace)
+                        consumer.cancel()
+                        await asyncio.wait([consumer])
+                if not consumer.cancelled():
+                    await consumer                   # surface the deadline / programming errors
+            finally:
+                for t in (consumer, stopper):
+                    t.cancel()
+                await asyncio.wait([consumer, stopper])
+    finally:
+        uninstall()
     log.info("done: %d ok, %d failed", ok, failed)
     return 128 + sig_received[0] if sig_received else (1 if failed else 0)
 

@@ -75,5 +75,5 @@ def merge_defaults(defaults: dict[str, int], overrides: dict[str, int]) -> dict[
 
 
 def caesar(text: str, shift: int) -> str:
-    """Shift letters, preserve case, leave other chars. ord/chr and % 26."""
+    """Shift ASCII letters, preserve case, leave other chars. ord/chr and % 26."""
     raise NotImplementedError

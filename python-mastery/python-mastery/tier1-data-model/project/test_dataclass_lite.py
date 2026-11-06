@@ -42,7 +42,7 @@ def test_ordering_of_defaults() -> None:
         @record
         class Bad:
             a: int = 1
-            b: int
+            b: int  # type: ignore[misc]
 
 
 def test_frozen_hash_slots() -> None:

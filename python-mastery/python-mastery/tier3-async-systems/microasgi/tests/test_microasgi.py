@@ -27,7 +27,8 @@ from microasgi import (
     WebSocketDisconnect,
     request_id_var,
 )
-from microasgi.routing import compile_path
+from microasgi.middleware import CallNext
+from microasgi.routing import compile_path, get_route_path
 from microasgi.testclient import WebSocketTester, client, lifespan
 
 
@@ -122,7 +123,7 @@ async def test_dispatch_middleware_sees_handler_contextvars() -> None:
     marker: contextvars.ContextVar[str] = contextvars.ContextVar("marker", default="unset")
     observed: list[str] = []
 
-    async def dispatch(request: Request, call_next) -> Response:  # type: ignore[no-untyped-def]
+    async def dispatch(request: Request, call_next: CallNext) -> Response:
         marker.set("from-middleware")
         response = await call_next(request)
         observed.append(marker.get())
@@ -201,15 +202,32 @@ async def test_lifespan_startup_failure_is_reported() -> None:
 
 async def test_mount_and_nested_router() -> None:
     async def sub_index(request: Request) -> Response:
-        return PlainTextResponse(f"sub:{request.path}:{request.scope['root_path']}")
+        scope = request.scope
+        return PlainTextResponse(f"sub:{get_route_path(scope)}:{request.path}:{scope['root_path']}")
 
     sub = Router([Route("/", sub_index), Route("/x", sub_index)])
     app = App(routes=[Mount("/api", sub)])
 
     async with client(app) as c:
-        assert (await c.get("/api")).text == "sub:/:/api"
-        assert (await c.get("/api/x")).text == "sub:/x:/api"
+        # ASGI: `path` stays the full target, Mount only extends `root_path`
+        assert (await c.get("/api")).text == "sub:/:/api:/api"
+        assert (await c.get("/api/x")).text == "sub:/x:/api/x:/api"
+        assert (await c.get("/apix")).status_code == 404
         assert (await c.get("/other")).status_code == 404
+
+    async with client(app, root_path="/pfx") as c:  # e.g. `uvicorn --root-path /pfx`
+        assert (await c.get("/pfx/api/x")).text == "sub:/x:/pfx/api/x:/pfx/api"
+
+
+async def test_server_root_path() -> None:
+    app = App()
+
+    @app.get("/items/{item_id:int}")
+    async def item(item_id: int) -> Response:
+        return JSONResponse({"id": item_id})
+
+    async with client(app, root_path="/pfx") as c:
+        assert (await c.get("/pfx/items/1")).json() == {"id": 1}
 
 
 async def test_websocket_echo() -> None:

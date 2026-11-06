@@ -50,7 +50,7 @@ with tempfile.TemporaryDirectory() as tmp:
 
 # --- datetime: always timezone-aware -------------------------------------------------------------
 now = datetime.now(UTC)
-ny = now.astimezone(ZoneInfo("America/New_York"))
+ny = now.astimezone(ZoneInfo("America/New_York"))  # Windows: needs `tzdata` (uv run --with tzdata)
 print(now.isoformat(), "|", ny.strftime("%Y-%m-%d %H:%M %Z"))
 print(datetime.fromisoformat("2026-09-11T10:00:00+00:00") + timedelta(days=1, hours=2))
 print((now - datetime(2026, 1, 1, tzinfo=UTC)).days, "days since new year")

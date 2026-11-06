@@ -63,7 +63,7 @@ Python has no "object literal." Ad-hoc records are dicts; typed records are `dat
 - Generics: `def first[T](xs: list[T]) -> T` (3.12 syntax) or `T = TypeVar("T")` older style.
 - `Callable[[int, str], bool]` for function types. `Iterable[T]` / `Sequence[T]` / `Mapping[K, V]` for parameters (accept the broadest thing), concrete `list[T]` for returns.
 - `Any` is `any`. `object` is `unknown`. `cast()` is `as`. `TYPE_CHECKING` guards import-only-for-types.
-- No narrowing on `if "k" in d` for TypedDicts the way TS narrows; use `.get()` or `NotRequired`.
+- `"k" in d` narrows a union of TypedDicts like TS's `in`, but fully only when the TypedDicts are `@final` (non-final ones may carry extra keys). Note that mypy does not stop you reading a `NotRequired` key with `d["k"]`; pyright does.
 
 ### Comparison with TS classes
 - No access modifiers. `_x` is "internal," `__x` name-mangles (avoid).

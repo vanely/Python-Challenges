@@ -62,7 +62,7 @@ These three are what make Python feel foreign to a TS developer. Give them the w
 - Typing: `ParamSpec` + `TypeVar` keep the wrapped signature: `Callable[P, R] -> Callable[P, R]`.
 - Class-based decorators use `__call__`. Decorators can stack; bottom applies first.
 - `functools.cache` memoizes; `partial` pre-binds args; `singledispatch` gives overloading by first-arg type.
-- TS analogue: TS decorators are class-only and experimental; Python's are plain higher-order functions and used everywhere (`@property`, `@dataclass`, `@app.get("/")`, `@pytest.fixture`).
+- TS analogue: TS decorators (standard since TS 5.0) apply only to classes and class members; Python's are plain higher-order functions and used everywhere (`@property`, `@dataclass`, `@app.get("/")`, `@pytest.fixture`).
 
 ## Copy
 `copy/01_iterators.py` → `copy/02_generators.py` → `copy/03_context_managers.py` → `copy/04_decorators.py`

@@ -8,7 +8,7 @@ name = "_native"
 crate-type = ["cdylib"]
 
 [dependencies]
-pyo3 = { version = "0.22", features = ["extension-module"] }
+pyo3 = { version = "0.28", features = ["extension-module"] }   # 0.28: last line supporting 3.13t (0.29 drops it); 3.12–3.14 ok
 # rayon = "1"            # exercise 1
 
 [profile.release]

@@ -1,67 +1,73 @@
-# Day 12–14: Project 2 — `docpipe`, PDF → structured JSON → SQLite → search API
+# Day 12–14: Project 2 — `docpipe`, PDF → chunks → SQLite full-text search → API (guided)
 
-An end-to-end pipeline you'd actually deploy: ingest a folder of PDFs, extract and chunk their text,
-store chunks with metadata in SQLite with full-text search, and serve a typed FastAPI search endpoint.
-Everything from both weeks shows up: generators for streaming pages, dataclasses/Pydantic at the right
-layers, context managers around the DB, decorators for timing/retry, async for the API, polars for a stats
-report, logging, pathlib, subprocess (optional OCR), tests with fixtures, and the full toolchain.
+An end-to-end pipeline you'd actually deploy:
 
-## What you'll build
 ```
-docpipe ingest ./samples --db docs.db          # extract, chunk, index (idempotent; skips unchanged files)
+docpipe ingest ../samples --db docs.db         # extract, chunk, index (idempotent: skips unchanged files)
 docpipe search "phonics" --db docs.db --limit 5
-docpipe stats --db docs.db                     # polars report: docs, pages, chunks, words per doc
-docpipe serve --db docs.db                     # FastAPI on :8000 with /search?q=...&limit=5 and /docs/{id}
-docpipe export --db docs.db out.jsonl          # one JSON object per chunk
+docpipe stats --db docs.db                     # polars report: pages, chunks, words per document
+docpipe export out.jsonl --db docs.db          # one JSON object per chunk, streamed
+docpipe serve --db docs.db                     # FastAPI on :8000 with /search, /documents, /export
 ```
 
-## Readings for the project
+Everything from both weeks shows up:
+- generators for streaming pages and rows;
+- dataclasses inside, Pydantic at the API boundary;
+- context managers around the database;
+- decorators;
+- logging;
+- polars, SQLite and FastAPI;
+- tests with fixtures, and the full toolchain.
+
+Five guided steps, each with concepts, code to type, a part you write yourself, and a checkpoint you didn't write:
+
+| Step | File | You build | Checkpoint | Time |
+|---|---|---|---|---|
+| 1 | [steps/01-extract-and-chunk.md](steps/01-extract-and-chunk.md) | Scaffold, models, streaming PDF extraction, paragraph-aware chunking | `test_dp_01_extract.py` | ~2.5 h |
+| 2 | [steps/02-store.md](steps/02-store.md) | SQLite schema, FTS5 index kept in sync by triggers, atomic replace, safe search | `test_dp_02_store.py` | ~3 h |
+| 3 | [steps/03-pipeline.md](steps/03-pipeline.md) | Content-hash idempotency, per-file error boundary, timing decorator | `test_dp_03_pipeline.py` | ~1.5 h |
+| 4 | [steps/04-cli-and-report.md](steps/04-cli-and-report.md) | typer CLI, logging setup, polars stats, streaming JSONL export | `test_dp_04_cli_report.py` | ~2 h |
+| 5 | [steps/05-api.md](steps/05-api.md) | FastAPI app factory with lifespan, dependencies, validation, streaming | `test_dp_05_api.py` | ~2 h |
+
+That's ~11 hours, not the 9 that three 3-hour days would give you. It's the biggest thing you've built in Python so far; give it four days if you need them. Answer every "Explain it back" question in `NOTES.md` next to this README.
+
+## Setup
+
+```bash
+cd week2/day12-14-project2-docpipe
+uv init --package docpipe
+cd docpipe
+```
+
+Step 1 gives you the `pyproject.toml`. Run everything from `docpipe/`:
+
+```bash
+uv run pytest ../checkpoints/test_dp_01_extract.py
+uv run pytest ../checkpoints                    # all of them; only once every step is done
+```
+
+Before the last step, run one checkpoint file at a time. Later checkpoint files import modules you haven't written yet, and pytest aborts the *whole* run when collection fails. Also, because the test paths point outside `docpipe/`, pytest ignores your `pyproject.toml`'s `[tool.pytest.ini_options]` for checkpoint runs. That only affects your own `uv run pytest`.
+
+`../samples/` has two small PDFs for trying the CLI. Drop your own PDFs in there too.
+
+## Readings
 
 | Source | Where | Read |
 |---|---|---|
-| pypdf | https://pypdf.readthedocs.io/en/stable/user/extract-text.html | Extract text; `PdfReader`, `page.extract_text()` |
-| SQLite FTS5 | https://www.sqlite.org/fts5.html | Overview, `MATCH`, `bm25()`, `snippet()`, external-content tables |
-| `hashlib` | https://docs.python.org/3/library/hashlib.html | `file_digest` (3.11) |
-| FastAPI background/streaming | https://fastapi.tiangolo.com/advanced/custom-response/#streamingresponse | For `export` over HTTP (stretch) |
-| polars | https://docs.pola.rs/user-guide/concepts/expressions/ | Refresher |
-| Everything from Days 8–11 | — | You'll reuse it all |
-
-Key points:
-- `pypdf` is pure Python; text extraction quality varies by PDF. Treat `extract_text()` returning `""` as "scanned page" and log it. OCR (`pytesseract`) is an optional stretch behind a flag.
-- Chunking: split on paragraphs, then merge to ~800 characters with ~100 overlap. Keep `page_no` and `chunk_index` so you can cite back.
-- Idempotency: hash the file bytes (`hashlib.file_digest`); store the hash on the document row; skip if unchanged, re-ingest if changed.
-- FTS5 external-content table over `chunks` keeps one copy of the text. Use `bm25()` for ranking and `snippet()` for highlights.
-
-## Build plan
-
-### Day 12 — extraction and storage (~3 hrs)
-1. Skeleton from Day 5 template. `uv add pypdf fastapi uvicorn typer rich polars pydantic`.
-2. `models.py`: `Document`, `Page`, `Chunk` dataclasses. `SearchHit` Pydantic model (API boundary).
-3. `extract.py`: `iter_pages(path) -> Iterator[Page]` (generator; logs empty pages). `chunk_text(text, size, overlap) -> Iterator[str]`.
-4. `store.py`: `Store` class — context manager over `sqlite3`, `SCHEMA` with `documents`, `chunks`, `chunks_fts` (FTS5, external content, triggers to keep in sync). Methods: `upsert_document`, `add_chunks`, `search`, `stats_rows`, `iter_chunks`.
-5. Test `extract.py` with a tiny generated PDF (see `tests/conftest.py` — it builds one with pypdf's writer) and `store.py` with `:memory:`.
-
-### Day 13 — pipeline, CLI, report (~3 hrs)
-6. `pipeline.py`: `ingest_dir(dir, store) -> IngestReport` — walks `rglob("*.pdf")`, hashes, skips unchanged, extracts → chunks → stores in one transaction per file; `@timed` decorator; per-file errors logged and counted, never fatal.
-7. `cli.py`: typer commands `ingest`, `search`, `stats`, `export`, `serve`. Rich table for search results with snippets.
-8. `report.py`: polars from `stats_rows()`; print docs/pages/chunks/words per document, and top terms (stretch).
-9. `export`: JSON Lines via `iter_chunks()` generator — never load everything into memory.
-
-### Day 14 — API, tests, polish (~3 hrs)
-10. `api.py`: FastAPI with lifespan opening the `Store`; `GET /search` (q, limit ≤ 50) → `list[SearchHit]`; `GET /documents` and `GET /documents/{id}`; 404 handler; `TestClient` tests with a temp DB.
-11. Full test suite green; `ruff`, `mypy --strict` clean.
-12. Write `NOTES.md`: what surprised you, where you wrote TS-in-Python, what you'd do differently. This is the reflection that turns the project into learning.
-13. Stretch: async ingestion with `asyncio.to_thread` per file + `Semaphore(4)`; `--ocr` flag using `subprocess` + `tesseract`; a `/export` `StreamingResponse`.
+| pypdf | https://pypdf.readthedocs.io/en/stable/user/extract-text.html | `PdfReader`, `page.extract_text()` |
+| sqlite3 | https://docs.python.org/3/library/sqlite3.html | "How to use placeholders", "How to use the connection context manager", `Row` |
+| SQLite FTS5 | https://www.sqlite.org/fts5.html | §1 overview, §3 query syntax, §4.4 external content tables, §5 `bm25()`/`snippet()` |
+| `hashlib.file_digest` | https://docs.python.org/3/library/hashlib.html#file-hashing | 3.11+ |
+| polars | https://docs.pola.rs/user-guide/concepts/expressions-and-contexts/ | Expressions, `with_columns`, `select` |
+| FastAPI | https://fastapi.tiangolo.com/advanced/events/ | Lifespan events; "Dependencies"; "Handling Errors"; "Custom Response → StreamingResponse" |
 
 ## Reference implementation
-`docpipe/` is a complete, tested solution (~450 lines). Build yours first. Then diff.
+
+`reference/docpipe/` is a complete, tested solution. **Open it only after all five checkpoints pass for your code.** Then diff it file by file and record the differences in `NOTES.md`.
 
 ```bash
-cd docpipe && uv sync
-uv run pytest && uv run ruff check . && uv run mypy src
-uv run docpipe ingest samples --db /tmp/docs.db
-uv run docpipe search "sample" --db /tmp/docs.db
-uv run docpipe stats --db /tmp/docs.db
-uv run docpipe serve --db /tmp/docs.db    # then open http://127.0.0.1:8000/docs
+cd reference/docpipe && uv sync
+uv run pytest && uv run ruff check . && uv run mypy src tests
+uv run docpipe ingest ../../samples --db docs.db
+uv run docpipe search "phonics" --db docs.db
 ```
-`samples/` contains two small generated PDFs. Drop any of your own PDFs in there.

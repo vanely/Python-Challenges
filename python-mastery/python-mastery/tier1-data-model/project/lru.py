@@ -49,6 +49,8 @@ def _make_key(args: tuple[Any, ...], kwds: dict[str, Any], typed: bool) -> Hasha
 
 
 class LruWrapper(Generic[P, R]):
+    __name__: str                              # set by update_wrapper
+
     def __init__(self, fn: Callable[P, R], maxsize: int | None, typed: bool) -> None:
         functools.update_wrapper(self, fn)
         self.__wrapped__ = fn
@@ -77,6 +79,8 @@ class LruWrapper(Generic[P, R]):
                 return result  # type: ignore[no-any-return]
             self._misses += 1
         result = self.__wrapped__(*args, **kwargs)      # outside the lock: no poisoning on raise
+        if self._maxsize == 0:
+            return result                                # functools: maxsize 0 means no caching
         with self._lock:
             if key in self._cache:
                 pass                                     # another thread filled it meanwhile

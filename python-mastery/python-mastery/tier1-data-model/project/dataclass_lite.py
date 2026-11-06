@@ -7,6 +7,9 @@ from collections.abc import Callable
 from dataclasses import FrozenInstanceError
 from typing import Any, ClassVar, TypeVar, dataclass_transform, get_type_hints, overload
 
+if sys.version_info >= (3, 14):
+    import annotationlib
+
 T = TypeVar("T", bound=type)
 _MISSING = object()
 _FIELDS = "__record_fields__"
@@ -50,8 +53,13 @@ def _collect_fields(cls: type) -> dict[str, Field]:
     fields: dict[str, Field] = {}
     for base in reversed(cls.__mro__[1:]):
         fields.update(getattr(base, _FIELDS, {}))
-    hints = get_type_hints(cls) if "__annotations__" in cls.__dict__ else {}
-    for name, typ in cls.__dict__.get("__annotations__", {}).items():
+    # 3.14 (PEP 649/749): the class body stores __annotate__, not __annotations__, in cls.__dict__
+    if sys.version_info >= (3, 14):
+        ann = annotationlib.get_annotations(cls, format=annotationlib.Format.FORWARDREF)
+    else:
+        ann = cls.__dict__.get("__annotations__", {})
+    hints = get_type_hints(cls) if ann else {}
+    for name, typ in ann.items():
         if getattr(typ, "__origin__", None) is ClassVar or typ is ClassVar:
             continue
         default = cls.__dict__.get(name, _MISSING)

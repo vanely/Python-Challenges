@@ -59,8 +59,9 @@ A `noxfile.py` with sessions (`tests`, `lint`, `typecheck`, `docs`), each in its
 ```bash
 cd pkgtemplate && uv sync && uv run nox -s lint typecheck tests
 uv build && ls dist/          # sdist + wheel
-python -m venv /tmp/clean && /tmp/clean/bin/pip install dist/*.whl && /tmp/clean/bin/pkgtemplate hello
+python -m venv /tmp/clean && /tmp/clean/bin/pip install "$(ls dist/*.whl)[cli]" && /tmp/clean/bin/pkgtemplate hello
 ```
+(Without the `[cli]` extra, `pkgtemplate hello` just tells you to install it and exits 2. On Windows the venv has `Scripts\`, not `bin/`.)
 
 ## Analysis prompts
 1. `unzip -l dist/*.whl`: what's in `*.dist-info/`? Read `METADATA`, `RECORD`, `entry_points.txt`. Where did each come from in `pyproject.toml`?

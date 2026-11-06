@@ -5,7 +5,7 @@ A service on your `microasgi` that correctly mixes the three execution contexts 
 ## Endpoints
 | Route | Work | Where it must run |
 |---|---|---|
-| `POST /hash` | bcrypt-style hashing (`hashlib.scrypt`, n=2**15) of the request body | **process pool** (CPU-bound, releases nothing) |
+| `POST /hash` | bcrypt-style hashing (`hashlib.scrypt(..., n=2**14, r=8, p=1)`; n=2**15 needs `maxmem=64*2**20`) of the request body | **process pool** (CPU-bound; scrypt releases the GIL, so the pool is about isolation and core budgeting — swap in a pure-Python CPU task to see the GIL argument) |
 | `GET /lookup/{host}` | `socket.getaddrinfo` (blocking DNS) | **thread pool** via `asyncio.to_thread` |
 | `POST /pdf` | text-extract an uploaded PDF (`pypdf`) | thread pool for I/O, process pool for the parse — chained |
 | `GET /stream` | 100 SSE events, one per 50 ms | event loop |

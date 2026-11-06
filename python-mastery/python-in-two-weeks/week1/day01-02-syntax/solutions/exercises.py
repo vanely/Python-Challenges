@@ -80,7 +80,7 @@ def merge_defaults(defaults: dict[str, int], overrides: dict[str, int]) -> dict[
 
 def caesar(text: str, shift: int) -> str:
     def rot(ch: str) -> str:
-        if not ch.isalpha():
+        if not (ch.isascii() and ch.isalpha()):
             return ch
         base = ord("A") if ch.isupper() else ord("a")
         return chr((ord(ch) - base + shift) % 26 + base)

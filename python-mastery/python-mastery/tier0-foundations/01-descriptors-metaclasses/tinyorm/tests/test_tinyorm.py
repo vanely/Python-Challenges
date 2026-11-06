@@ -115,6 +115,27 @@ def test_slicing_uses_limit_offset(db: Database, products: list[Product]) -> Non
     assert Product.objects.order_by("id").first().id == 1  # type: ignore[union-attr]
 
 
+def test_count_and_exists_respect_slicing(products: list[Product]) -> None:
+    qs = Product.objects.order_by("id")
+    assert qs[:2].count() == len(qs[:2]) == 2
+    assert qs[1:].count() == len(qs[1:]) == 2
+    assert qs[5:].count() == 0
+    assert qs[1:].exists() and qs[:1].exists()
+    assert not qs[3:].exists()
+
+
+def test_nested_slicing_composes(products: list[Product]) -> None:
+    qs = Product.objects.order_by("id")
+    assert [p.id for p in qs[:2][1:]] == [2]
+    assert [p.id for p in qs[1:][:1]] == [2]
+    assert [p.id for p in qs[:3][1:10]] == [2, 3]
+    assert qs[:2][1:].count() == 1
+    assert list(qs[:1][2:]) == [] and qs[:1][2:].count() == 0
+    assert qs[1:][1].id == 3
+    with pytest.raises(IndexError):
+        qs[:1][1]
+
+
 def test_get_errors(products: list[Product]) -> None:
     with pytest.raises(MultipleObjectsReturned):
         Product.objects.get(price__gt=0)

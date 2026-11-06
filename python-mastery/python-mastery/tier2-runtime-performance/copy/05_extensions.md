@@ -23,7 +23,7 @@ use numpy::PyReadonlyArray1;
 #[pyfunction]
 fn dot(py: Python<'_>, a: PyReadonlyArray1<f64>, b: PyReadonlyArray1<f64>) -> PyResult<f64> {
     let (a, b) = (a.as_slice()?, b.as_slice()?);
-    Ok(py.allow_threads(|| a.iter().zip(b).map(|(x, y)| x * y).sum()))   // GIL released
+    Ok(py.detach(|| a.iter().zip(b).map(|(x, y)| x * y).sum()))   // GIL released
 }
 
 #[pymodule]
@@ -31,7 +31,7 @@ fn fastsum(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(dot, m)?)
 }
 ```
-`Cargo.toml`: `[lib] crate-type = ["cdylib"]`, deps `pyo3 = { version = "0.22", features = ["extension-module"] }`, `numpy = "0.22"`.
+`Cargo.toml`: `[lib] crate-type = ["cdylib"]`, deps `pyo3 = { version = "0.28", features = ["extension-module"] }`, `numpy = "0.28"` (0.28 is the last PyO3 line that builds for 3.13t; 0.29+ needs 3.14t for free-threading).
 `pyproject.toml`: `[build-system] requires = ["maturin>=1.5"] build-backend = "maturin"`; `[tool.maturin] features = ["pyo3/extension-module"]`.
 Build: `maturin develop --release` (installs into the active venv) / `maturin build --release` (wheel).
 
@@ -51,9 +51,10 @@ Build: `maturin develop --release` (installs into the active venv) / `maturin bu
 [tool.cibuildwheel]
 build = "cp312-* cp313-*"
 skip = "*-musllinux_i686"
+test-requires = "pytest"
 test-command = "pytest {project}/tests"
 ```
 Consider `abi3-py312` (PyO3 feature `abi3-py312`) so one wheel per platform covers every 3.12+ version. Always publish the sdist too.
 
 ## Free-threading readiness
-Cython: `# cython: freethreading_compatible = True` (3.1+). PyO3: `#[pymodule(gil_used = false)]` (0.23+) after auditing shared state. Test under `python3.13t` with `pytest -p no:cacheprovider` and `PYTHON_GIL=0`.
+Cython: `# cython: freethreading_compatible = True` (3.1+). PyO3: `#[pymodule(gil_used = false)]` after auditing shared state (opt-in on 0.23–0.27; the default since 0.28, so declare `gil_used = true` until you've audited). Test under `python3.13t` with `pytest -p no:cacheprovider` and `PYTHON_GIL=0`.

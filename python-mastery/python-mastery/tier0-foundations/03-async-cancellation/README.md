@@ -27,7 +27,7 @@ DRF is sync. This module makes asyncio's *hard* parts — cancellation, timeouts
 ## Reading summaries
 
 ### Cancellation semantics (the part everyone gets wrong)
-- `task.cancel()` **requests** cancellation: it schedules a `CancelledError` to be thrown into the coroutine at its **next `await`** that actually suspends. Code between awaits is never interrupted.
+- `task.cancel()` **requests** cancellation: the `CancelledError` is raised at the **`await` where the task is currently suspended** (it can only be cancelled while suspended). If the task hasn't started yet, its body — including `try/finally` — never runs. Code between awaits is never interrupted.
 - `CancelledError` is a `BaseException` (since 3.8). `except Exception:` does **not** catch it — good. Catching it and not re-raising is almost always a bug: the canceller (e.g. a `TaskGroup`, a `timeout`) is waiting for that task to *finish cancelling*.
 - `finally:` blocks run. If you `await` inside `finally` during cancellation, you can be cancelled *again*. Use `asyncio.shield()` for a critical cleanup await, or better, keep cleanup sync.
 - `asyncio.shield(coro)` protects the inner from *outer* cancellation but the outer still gets `CancelledError`; the inner keeps running detached. Use rarely (commit a DB write already in flight).
@@ -37,11 +37,11 @@ DRF is sync. This module makes asyncio's *hard* parts — cancellation, timeouts
 ### Structured concurrency
 - `async with TaskGroup() as tg: tg.create_task(...)` — the block doesn't exit until all tasks finish. First exception cancels the rest, waits for them, then raises an `ExceptionGroup`. Use `except*`.
 - `gather(*coros)` returns results in order; with `return_exceptions=False` (default), the first exception propagates **but the other tasks keep running** — that's the footgun. `gather` is still fine for a fixed set of independent awaitables where you want ordered results and no sibling cancellation.
-- `asyncio.timeout(s)` / `timeout_at()` are cancel scopes: cancel the current task at the deadline and convert to `TimeoutError` on exit. Prefer over `wait_for` (which wraps in a task and has its own edge cases).
+- `asyncio.timeout(s)` / `timeout_at()` are cancel scopes: cancel the current task at the deadline and convert to `TimeoutError` on exit. Since 3.12 `wait_for` is implemented on top of `timeout()`; prefer `timeout()` because it scopes a whole block rather than one awaitable.
 - Fire-and-forget: `create_task` **and keep a reference** (`self._tasks.add(t); t.add_done_callback(self._tasks.discard)`), or the task can be garbage-collected mid-flight.
 
 ### Graceful shutdown pattern
-1. `loop.add_signal_handler(SIGTERM, stop_event.set)` (and SIGINT). Don't raise from signal handlers.
+1. `loop.add_signal_handler(SIGTERM, stop_event.set)` (and SIGINT). Don't raise from signal handlers. POSIX only: Windows loops raise `NotImplementedError`, so fall back to `signal.signal(s, lambda n, _f: loop.call_soon_threadsafe(...))` — and there only SIGINT (Ctrl-C) is ever delivered.
 2. Main body runs inside a `TaskGroup`; a watcher task awaits `stop_event.wait()` then cancels the group's work (or sets a flag producers check).
 3. Drain: stop accepting new work; let in-flight finish under `asyncio.timeout(grace)`; then hard-cancel what's left.
 4. Cleanup in `finally` (sync where possible). Exit code: 0 on clean, 130 on SIGINT, 143 on SIGTERM, 1 on error.
@@ -55,7 +55,7 @@ DRF is sync. This module makes asyncio's *hard* parts — cancellation, timeouts
 ## Copy
 `copy/01_cancellation.py` — every semantic above, demonstrated with prints you can predict first.
 `copy/02_structured.py` — `TaskGroup` vs `gather` failure behaviour, `timeout`, bounded concurrency, keeping task refs, `contextvars` propagation.
-`copy/03_shutdown.py` — a runnable service with signal handling and drain; send it SIGINT/SIGTERM and read the log.
+`copy/03_shutdown.py` — a runnable service with signal handling and drain; send it SIGINT/SIGTERM (Windows: Ctrl-C only) and read the log.
 
 ## Analysis prompts
 1. In `Lib/asyncio/tasks.py`, trace `Task.cancel()` → `__step` → `coro.throw(CancelledError)`. At what point is `_must_cancel` cleared? What does `_fut_waiter` have to do with it?

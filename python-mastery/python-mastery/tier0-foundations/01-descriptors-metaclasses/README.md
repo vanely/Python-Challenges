@@ -41,7 +41,7 @@ Assignment `obj.x = v` checks the type for a data descriptor first and calls `__
 ### Metaclasses
 - A class is an instance of its metaclass. `type` is the default. `class C(B, metaclass=M):` → Python calls `M.__prepare__(name, bases)` for the namespace, executes the body into it, then `M(name, bases, ns)` → `M.__new__` → `M.__init__`.
 - Override `__new__` to inspect/alter the namespace before the class exists (collect fields, validate, inject attributes). Override `__call__` on the metaclass to control instantiation (singletons, registries).
-- Django's `ModelBase.__new__`: creates the class with an almost-empty body, builds `_meta`, then calls `add_to_class` for each attribute — which calls `contribute_to_class` if present (fields do) or `setattr` otherwise. That's the whole trick.
+- Django's `ModelBase.__new__`: creates the class with every attribute that *lacks* `contribute_to_class` (so plain attributes get normal `__set_name__` handling), builds `_meta`, then calls `add_to_class` for the held-back ones — fields — which calls their `contribute_to_class`. That's the whole trick.
 - **Prefer** `__init_subclass__` (runs on the *parent* when a subclass is created) + `__set_name__` for 90% of "collect the fields" use cases. Reach for a real metaclass only when you need `__prepare__`, need to alter the namespace before creation, or need to change what `isinstance`/`__call__` mean.
 
 ### Where this shows up beyond ORMs
@@ -52,7 +52,7 @@ Assignment `obj.x = v` checks the type for a data descriptor first and calls `__
 `copy/02_metaclasses.py` — `type()` by hand, `__prepare__`, a registry metaclass, `__init_subclass__` doing the same job, metaclass `__call__`.
 
 ## Analysis prompts (write answers in `NOTES.md`)
-1. In Django's `ModelBase.__new__`, why is the class created with `super_new(cls, name, bases, new_attrs, **kwargs)` where `new_attrs` contains only `__module__`, `__qualname__`, and `__classcell__` — and everything else added afterwards?
+1. Why does Django's `ModelBase.__new__` pass only attributes *without* `contribute_to_class` to `super_new(cls, name, bases, new_attrs, **kwargs)` and add fields afterwards via `add_to_class`?
 2. `DeferredAttribute.__get__` checks `instance.__dict__` first, then `refresh_from_db`. Why is it a *non-data* descriptor? What would break if it defined `__set__`?
 3. `functools.cached_property` used to hold a lock (removed in 3.12). Read the 3.11 and 3.12 sources. Why was it removed?
 4. Reimplement `staticmethod` from the HowTo. Then explain why `@staticmethod` functions became callable directly in 3.10.

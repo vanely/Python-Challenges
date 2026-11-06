@@ -7,7 +7,7 @@ import sys
 from collections import Counter
 from pathlib import Path
 
-WORD = re.compile(r"[a-z']+")
+WORD = re.compile(r"[^\W\d_]+(?:'[^\W\d_]+)*")
 
 
 def top_words(text: str, n: int, min_len: int) -> list[tuple[str, int]]:

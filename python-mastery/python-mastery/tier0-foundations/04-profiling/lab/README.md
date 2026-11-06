@@ -23,12 +23,12 @@ Reference implementations for v1/v2/v3 are here — do yours first. The referenc
 
 Three lessons hiding in that table:
 1. The **algorithmic** fix (v1) is where almost all the win is. Everything after is a smaller multiplier on a much smaller number.
-2. **Cython did not beat v1.** The loop body is `str.split`, dict/list/set ops and `int()` — all already C, all still Python objects. Typing the locals `str`/`int` doesn't remove the object traffic. Cython pays off when the inner loop is *arithmetic on scalars or memoryviews*, not string/dict shuffling. Prove it to yourself: rewrite p95 as a typed-memoryview quickselect in Cython and compare against `list.sort()`.
+2. **Cython barely beats v1, if at all.** On the authoring machine it was slower (above); on others it gave only ~1.1–1.4× over v1. The loop body is `str.split`, dict/list/set ops and `int()` — all already C, all still Python objects. Typing the locals `str`/`int` doesn't remove the object traffic. Cython pays off when the inner loop is *arithmetic on scalars or memoryviews*, not string/dict shuffling. Prove it to yourself: rewrite p95 as a typed-memoryview quickselect in Cython and compare against `list.sort()`.
 3. A first `bench.py` draft timed polars at 1.6 s — because it timed `import polars`. Always import/warm up outside the timed region; the reference harness now does. Measurement bugs are the most common profiling result.
 
 ## What's wrong with v0 (don't read until you've profiled)
-- Parses each line with a compiled-per-call regex and `datetime.strptime` on every row (only the date bucket is needed)
-- Collects **all** latencies per key in lists and sorts each list to get p95 → O(k · n log n) and huge memory
+- Calls `re.match` with a pattern string on every line (a cache lookup plus a match object; small) and does a full `datetime.fromisoformat` + `strftime` when only the date is needed
+- Collects **all** latencies per key in lists (huge memory) and sorts a copy of each per-key list for p95 → O(n log n) total, plus a full copy
 - Unique users via `if user not in users_list` → O(n²)
 - Top-N by sorting the whole dict every time it's called (called per key for "rank")
 - String-builds the key with f-strings and then re-splits it

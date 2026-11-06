@@ -46,6 +46,8 @@ if __name__ == "__main__":
 
     process([1, -2, 3])
     risky()
+    logging.getLogger().removeHandler(fh)
+    fh.close()                                 # Windows can't delete a file that's still open
     print("---- _app.log ----")
     print(Path("_app.log").read_text())
     Path("_app.log").unlink()

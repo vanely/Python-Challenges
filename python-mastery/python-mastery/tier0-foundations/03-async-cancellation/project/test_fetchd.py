@@ -1,6 +1,7 @@
 import asyncio
 import os
 import signal
+import socket
 import subprocess
 import sys
 import time
@@ -9,7 +10,7 @@ from pathlib import Path
 import httpx
 import pytest
 
-from fetchd import Fetcher, TokenBucket
+from fetchd import Fetcher, TokenBucket, main
 
 pytestmark = pytest.mark.asyncio
 
@@ -151,14 +152,44 @@ async def test_stop_prevents_new_dispatch() -> None:
     assert results[0].ok and all(r.error == "cancelled" for r in results[1:])
 
 
+async def test_sigint_grace_then_cancel(caplog: pytest.LogCaptureFixture) -> None:
+    accepted = asyncio.Event()
+
+    async def never_reply(reader: asyncio.StreamReader, writer: asyncio.StreamWriter) -> None:
+        accepted.set()
+        await reader.read()                       # hold the connection open, never answer
+        writer.close()                            # 3.12: Server.wait_closed() waits for this
+
+    server = await asyncio.start_server(never_reply, "127.0.0.1", 0)
+    port = server.sockets[0].getsockname()[1]
+    async with server:
+        run = asyncio.create_task(main([f"http://127.0.0.1:{port}/never"], grace=0.2))
+        await accepted.wait()                     # request in flight; handlers installed
+        t0 = time.perf_counter()
+        signal.raise_signal(signal.SIGINT)        # Windows: exercises the signal.signal fallback
+        code = await run
+    assert code == 130
+    assert time.perf_counter() - t0 < 2           # grace cancelled it, not the 5s request timeout
+    assert "grace period" in caplog.text
+
+
 @pytest.mark.skipif(sys.platform == "win32", reason="POSIX signals")
 async def test_sigterm_exit_code() -> None:
     script = Path(__file__).with_name("fetchd.py")
-    proc = subprocess.Popen(
-        [sys.executable, str(script), "http://127.0.0.1:9/never"],  # port 9 = discard; connection refused -> retries
-        stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-    )
-    time.sleep(0.5)
-    os.kill(proc.pid, signal.SIGTERM)
-    code = proc.wait(timeout=10)
-    assert code == 143, proc.stderr.read().decode()  # type: ignore[union-attr]
+    with socket.create_server(("127.0.0.1", 0)) as srv:   # accepts, never replies
+        srv.settimeout(10)
+        port = srv.getsockname()[1]
+        proc = subprocess.Popen(
+            [sys.executable, str(script), f"http://127.0.0.1:{port}/never"],
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        )
+        try:
+            conn, _ = srv.accept()                # request in flight; handlers installed
+            with conn:
+                os.kill(proc.pid, signal.SIGTERM)
+                _, err = proc.communicate(timeout=10)
+        finally:
+            if proc.poll() is None:
+                proc.kill()
+                proc.wait()
+    assert proc.returncode == 143, err.decode()

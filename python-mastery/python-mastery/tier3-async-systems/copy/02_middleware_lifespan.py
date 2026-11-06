@@ -113,8 +113,8 @@ class DispatchMiddleware:
 
             task = asyncio.create_task(inner())
             # If the inner app raises *before* sending response.start, nothing ever lands in
-            # the queue and `await queue.get()` hangs forever. This exact bug was Starlette
-            # #1022; the fix is to wait on both the task and the queue.
+            # the queue and `await queue.get()` hangs forever. Starlette's BaseHTTPMiddleware
+            # had to handle this too; the fix is to wait on both the task and the queue.
             getter = asyncio.ensure_future(queue.get())
             done, _ = await asyncio.wait({task, getter}, return_when=asyncio.FIRST_COMPLETED)
             if task in done and getter not in done:

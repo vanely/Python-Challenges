@@ -59,7 +59,7 @@ The "glue" day. Everything here is stdlib and you'll use it in every script you 
 ### json / csv / datetime
 - `json.dumps(obj, indent=2, default=fn)` — `default` handles non-serialisable types (datetime, Decimal, dataclasses via `asdict`). `json.loads` returns plain dicts/lists — validate with Pydantic (Day 10) if it matters.
 - `csv.DictReader(f)` yields `dict[str, str]` per row; `DictWriter(f, fieldnames=[...])` + `.writeheader()`. Open with `newline=""`.
-- `datetime.now(tz=timezone.utc)` — always timezone-aware. `fromisoformat` parses ISO 8601. `timedelta` for arithmetic. `strftime`/`strptime` for custom formats. `zoneinfo.ZoneInfo("America/New_York")` for named zones.
+- `datetime.now(tz=timezone.utc)` — always timezone-aware. `fromisoformat` parses ISO 8601. `timedelta` for arithmetic. `strftime`/`strptime` for custom formats. `zoneinfo.ZoneInfo("America/New_York")` for named zones. On Windows, also install `tzdata` (`uv add tzdata`); there's no system time zone database.
 
 ## Copy
 `copy/01_exceptions.py` → `copy/02_logging.py` → `copy/03_paths_files.py` → `copy/04_subprocess_json_csv.py`

@@ -9,7 +9,7 @@ import tempfile
 import textwrap
 import types
 
-print("meta_path:", [type(f).__name__ for f in sys.meta_path])
+print("meta_path:", [getattr(f, "__name__", type(f).__name__) for f in sys.meta_path])  # finders are classes
 print("path_hooks:", [h.__name__ if hasattr(h, "__name__") else type(h).__name__ for h in sys.path_hooks])
 
 spec = importlib.util.find_spec("json")

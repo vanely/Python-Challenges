@@ -24,8 +24,9 @@ async def _run(
     await app(scope, inbox.get, outbox.put)
 
 
-def client(app: ASGIApp, base_url: str = "http://test") -> httpx.AsyncClient:
-    return httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url=base_url)
+def client(app: ASGIApp, base_url: str = "http://test", root_path: str = "") -> httpx.AsyncClient:
+    transport = httpx.ASGITransport(app=app, root_path=root_path)
+    return httpx.AsyncClient(transport=transport, base_url=base_url)
 
 
 @asynccontextmanager

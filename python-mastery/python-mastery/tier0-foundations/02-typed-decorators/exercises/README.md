@@ -2,7 +2,7 @@
 
 Implement each in `decorators.py`. Two gates:
 1. `pytest test_decorators.py` — runtime behaviour
-2. `mypy --strict --disable-error-code=empty-body decorators.py typecheck.py` — the `typecheck.py` file contains `reveal_type` and deliberate-error lines with `# type: ignore[...]` comments; if your types are wrong, mypy reports *unused* ignores or new errors. Zero output = pass.
+2. `mypy --strict --disable-error-code=empty-body decorators.py typecheck.py` — the `typecheck.py` file contains `reveal_type` and deliberate-error lines with `# type: ignore[...]` comments; if your types are wrong, mypy reports *unused* ignores or new errors. Pass = the 11 `Revealed type` notes (matching the comments) plus `Success`.
 
 | # | Decorator | Typing rung |
 |---|---|---|

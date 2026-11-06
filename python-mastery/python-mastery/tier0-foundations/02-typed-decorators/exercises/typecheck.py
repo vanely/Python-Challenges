@@ -1,5 +1,6 @@
 """Type contract. Run: mypy --strict --disable-error-code=empty-body decorators.py typecheck.py
-Expected output: only the eleven `note: Revealed type` lines, matching the comments, then Success."""
+Expected output: only the eleven `note: Revealed type` lines, matching the comments, then Success.
+(Comments use current mypy's short names; older 1.x releases print `builtins.int`, `Union[...]`.)"""
 from __future__ import annotations
 
 import logging
@@ -47,17 +48,17 @@ class C:
     def value(self) -> list[int]: ...
 
 
-reveal_type(load)        # N: Revealed type is "def (path: builtins.str) -> builtins.dict[builtins.str, builtins.int]"
-reveal_type(save)        # N: Revealed type is "def (data: builtins.bytes) -> Union[builtins.int, None]"
-reveal_type(tick)        # N: Revealed type is "def (n: builtins.int)"
-reveal_type(work)        # N: Revealed type is "def (n: builtins.int) -> builtins.str"
-reveal_type(sync_fn)     # N: Revealed type is "def (x: builtins.int) -> typing.Coroutine[Any, Any, builtins.str]"
-reveal_type(async_fn)    # N: Revealed type is "def (x: builtins.int) -> typing.Coroutine[Any, Any, builtins.str]"
-reveal_type(counted.calls)   # N: Revealed type is "builtins.int"
-reveal_type(counted(1))      # N: Revealed type is "builtins.float"
-reveal_type(typed)       # N: Revealed type is "def (a: builtins.int, b: builtins.str) -> builtins.bool"
-reveal_type(C().value)   # N: Revealed type is "builtins.list[builtins.int]"
-reveal_type(C.value)     # N: Revealed type is "decorators.lazy[builtins.list[builtins.int]]"
+reveal_type(load)        # N: Revealed type is "def (path: str) -> dict[str, int]"
+reveal_type(save)        # N: Revealed type is "def (data: bytes) -> int | None"
+reveal_type(tick)        # N: Revealed type is "def (n: int)"
+reveal_type(work)        # N: Revealed type is "def (n: int) -> str"
+reveal_type(sync_fn)     # N: Revealed type is "def (x: int) -> typing.Coroutine[Any, Any, str]"
+reveal_type(async_fn)    # N: Revealed type is "def (x: int) -> typing.Coroutine[Any, Any, str]"
+reveal_type(counted.calls)   # N: Revealed type is "int"
+reveal_type(counted(1))      # N: Revealed type is "float"
+reveal_type(typed)       # N: Revealed type is "def (a: int, b: str) -> bool"
+reveal_type(C().value)   # N: Revealed type is "list[int]"
+reveal_type(C.value)     # N: Revealed type is "decorators.lazy[list[int]]"
 
 # These MUST be errors once your types are right (unused-ignore fires otherwise):
 load(1)                  # type: ignore[arg-type]

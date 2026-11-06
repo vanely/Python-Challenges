@@ -21,7 +21,7 @@ If you've used Express/Hono/NestJS with zod, this is the closest thing Python ha
 ## Reading summaries
 
 ### Pydantic v2
-- `class User(BaseModel): id: int; email: EmailStr; tags: list[str] = []` — mutable defaults are OK here (Pydantic copies).
+- `class User(BaseModel): id: int; email: EmailStr; tags: list[str] = []` (`EmailStr` requires `pydantic[email]`) — mutable defaults are OK here (Pydantic copies).
 - Validation happens on construction: `User(id="1")` coerces to `1`; `User(id="x")` raises `ValidationError` with a structured `.errors()`.
 - `model_validate(dict)` / `model_validate_json(str)` in; `model_dump()` / `model_dump_json()` out. `exclude_none`, `by_alias`.
 - `Field(gt=0, max_length=50, description="...")` for constraints; `@field_validator("x")` and `@model_validator(mode="after")` for custom rules.
@@ -37,12 +37,12 @@ If you've used Express/Hono/NestJS with zod, this is the closest thing Python ha
 - `APIRouter` splits routes across modules; `app.include_router(r, prefix="/v1", tags=["items"])`.
 - Lifespan: `@asynccontextmanager async def lifespan(app): ...startup; yield; ...shutdown` — connect pools here.
 - `/docs` (Swagger) and `/openapi.json` are generated from your types. Free.
-- Testing: `TestClient(app)` (sync, wraps httpx) — no server needed.
+- Testing: `TestClient(app)` (sync, wraps `httpx2`, the maintained httpx successor) — no server needed.
 
 ## Copy
 The `app/` package here is the reference. Type it out module by module, then run:
 ```bash
-uv add fastapi uvicorn pydantic-settings && uv add --dev pytest httpx
+uv add fastapi uvicorn pydantic-settings && uv add --dev pytest httpx2
 uv run uvicorn app.main:app --reload
 uv run pytest
 ```

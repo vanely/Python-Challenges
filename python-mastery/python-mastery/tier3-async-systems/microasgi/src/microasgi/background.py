@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Awaitable, Callable
+import inspect
+from collections.abc import Callable
 from typing import Any
 
 
@@ -14,9 +15,10 @@ class BackgroundTask:
         self.kwargs = kwargs
 
     async def __call__(self) -> None:
-        result = self.func(*self.args, **self.kwargs)
-        if isinstance(result, Awaitable) or asyncio.iscoroutinefunction(self.func):
-            await result
+        if inspect.iscoroutinefunction(self.func):
+            await self.func(*self.args, **self.kwargs)
+        else:
+            await asyncio.to_thread(self.func, *self.args, **self.kwargs)
 
 
 class BackgroundTasks(BackgroundTask):

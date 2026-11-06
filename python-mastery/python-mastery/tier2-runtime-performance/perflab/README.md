@@ -9,7 +9,7 @@ The Tier 0 Cython version didn't beat v1 because its loop was Python-object traf
 3. Inspect `v3_parse.html`: the inner loop must be white.
 
 ## v4 — Rust/PyO3
-`../rust-ext/` is a complete scaffold: parse the whole file in Rust, aggregate into `HashMap<(u16, String), Vec<u32>>`, compute mean/p95/unique users, return a Python dict. Build with `maturin develop --release`, then add `v4_rust.py` to `bench.py`. Expect it to beat everything except possibly polars — then make it beat polars by adding `rayon` parallel parsing (`par_lines`) and releasing the GIL (`py.allow_threads`).
+`../rust-ext/` is a complete scaffold: parse the whole file in Rust, aggregate into `HashMap<(u16, String), Vec<u32>>`, compute mean/p95/unique users, return a Python dict. Build with `maturin develop --release`, then add `v4_rust.py` to `bench.py`. Expect it to beat everything except possibly polars — then make it beat polars by adding `rayon` parallel parsing (`par_lines`) and releasing the GIL (`py.detach`).
 
 ## v5 — free-threaded
 Split the file into N byte ranges; parse each in a thread using **v1's pure-Python parser**; run under `python3.13t`. Compare to `python3.13`. Then do the same with `ProcessPoolExecutor` and explain the difference (pickling cost, startup, memory).

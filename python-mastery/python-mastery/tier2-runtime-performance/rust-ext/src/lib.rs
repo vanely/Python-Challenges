@@ -38,10 +38,10 @@ fn aggregate_str(text: &str) -> HashMap<(u16, String), Agg> {
 /// aggregate(path) -> dict[str, dict[str, int | float]]
 /// Keys are "status|endpoint"; values have count, mean, p95, unique_users, rank.
 #[pyfunction]
-fn aggregate(py: Python<'_>, path: &str) -> PyResult<PyObject> {
+fn aggregate(py: Python<'_>, path: &str) -> PyResult<Py<PyAny>> {
     let text = fs::read_to_string(path)?;
-    // Everything below is pure Rust: release the GIL so other Python threads can run.
-    let mut rows: Vec<(u16, String, usize, f64, u32, usize)> = py.allow_threads(|| {
+    // Everything below is pure Rust: detach from the interpreter (release the GIL) so other Python threads can run.
+    let mut rows: Vec<(u16, String, usize, f64, u32, usize)> = py.detach(|| {
         let map = aggregate_str(&text);
         map.into_iter()
             .map(|((status, ep), mut a)| {
@@ -54,9 +54,9 @@ fn aggregate(py: Python<'_>, path: &str) -> PyResult<PyObject> {
             .collect()
     });
     rows.sort_by(|a, b| b.2.cmp(&a.2));
-    let out = PyDict::new_bound(py);
+    let out = PyDict::new(py);
     for (rank, (status, ep, count, mean, p95, uniq)) in rows.into_iter().enumerate() {
-        let d = PyDict::new_bound(py);
+        let d = PyDict::new(py);
         d.set_item("status", status)?;
         d.set_item("endpoint_len", ep.len())?;
         d.set_item("count", count)?;
@@ -66,10 +66,11 @@ fn aggregate(py: Python<'_>, path: &str) -> PyResult<PyObject> {
         d.set_item("rank", rank + 1)?;
         out.set_item(format!("{status}|{ep}"), d)?;
     }
-    Ok(out.into())
+    Ok(out.into_any().unbind())
 }
 
-#[pymodule]
+// PyO3 >= 0.28 defaults to gil_used = false; opt out until exercise 3 audits the module.
+#[pymodule(gil_used = true)]
 fn _native(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(aggregate, m)?)?;
     Ok(())

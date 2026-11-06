@@ -3,18 +3,19 @@ import csv
 import io
 import json
 import subprocess
+import sys
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 from decimal import Decimal
 from typing import Any
 
 # --- subprocess ------------------------------------------------------------------------------
-r = subprocess.run(["python3", "-c", "print('hi'); import sys; print('err', file=sys.stderr)"],
+r = subprocess.run([sys.executable, "-c", "print('hi'); import sys; print('err', file=sys.stderr)"],
                    capture_output=True, text=True, check=True, timeout=10)
 print(repr(r.stdout), repr(r.stderr), r.returncode)
 
 try:
-    subprocess.run(["python3", "-c", "raise SystemExit(3)"], check=True)
+    subprocess.run([sys.executable, "-c", "raise SystemExit(3)"], check=True)
 except subprocess.CalledProcessError as e:
     print("failed with", e.returncode)
 

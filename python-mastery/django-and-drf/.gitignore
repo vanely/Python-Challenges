@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+*.pyc
+trackr/db.sqlite3
+trackr/staticfiles/
+trackr/.env
+trackr/schema.yml
+.pytest_cache/
+.ruff_cache/

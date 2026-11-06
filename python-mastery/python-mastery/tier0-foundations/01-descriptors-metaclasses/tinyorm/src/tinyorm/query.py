@@ -85,12 +85,17 @@ class QuerySet(Generic[M]):
         if isinstance(k, int):
             if self._cache is not None:
                 return self._cache[k]
+            if self._limit is not None and k >= self._limit:
+                raise IndexError(k)
             rows = list(replace(self, _limit=1, _offset=self._offset + k))
             if not rows:
                 raise IndexError(k)
             return rows[0]
         start = k.start or 0
-        limit = None if k.stop is None else k.stop - start
+        stop = k.stop
+        if self._limit is not None:
+            stop = self._limit if stop is None else min(stop, self._limit)
+        limit = None if stop is None else max(stop - start, 0)
         return replace(self, _offset=self._offset + start, _limit=limit, _cache=None)
 
     # --- SQL --------------------------------------------------------------------------------
@@ -132,6 +137,9 @@ class QuerySet(Generic[M]):
 
     def count(self) -> int:
         sql, params = self._sql("COUNT(*)")
+        if self._limit is not None or self._offset:
+            inner, params = self._sql("1")
+            sql = f"SELECT COUNT(*) FROM ({inner})"
         row = Database.get_default().execute(sql, params).fetchone()
         return int(row[0])
 

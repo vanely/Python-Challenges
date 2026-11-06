@@ -22,7 +22,7 @@ class User:
 
 u = User(1, "Ada", tags=["core"])
 v = User(1, "Ada", tags=["core"])
-print(u)                 # User(id=1, name='Ada', role=<Role.ADMIN: 'admin'>...) — free __repr__
+print(u)                 # User(id=1, name='Ada', role=<Role.VIEWER: 'viewer'>, tags=['core']) — free __repr__
 print(u == v)            # True — free __eq__ (field-wise)
 u.tags.append("x")
 print(u.tags, v.tags)    # separate lists thanks to default_factory

@@ -1,10 +1,13 @@
 """Day 4 — context managers."""
 import contextlib
 import os
+import tempfile
 import time
 from collections.abc import Iterator
 from pathlib import Path
 from types import TracebackType
+
+TMP = Path(tempfile.gettempdir())       # /tmp on Unix, %TEMP% on Windows
 
 
 class Timer:
@@ -41,7 +44,7 @@ def cd(path: Path) -> Iterator[None]:
         os.chdir(prev)
 
 
-with cd(Path("/tmp")):
+with cd(TMP):
     print(Path.cwd())
 print(Path.cwd())
 
@@ -77,11 +80,11 @@ with contextlib.suppress(FileNotFoundError):
 print("suppressed")
 
 with contextlib.ExitStack() as stack:    # manage N resources dynamically
-    files = [stack.enter_context(Path(f"/tmp/_{i}.txt").open("w")) for i in range(3)]
+    files = [stack.enter_context((TMP / f"_{i}.txt").open("w")) for i in range(3)]
     print(len(files), "files open")
 print("all closed")
 for i in range(3):
-    Path(f"/tmp/_{i}.txt").unlink()
+    (TMP / f"_{i}.txt").unlink()
 
 # multiple in one statement
 with Timer(), contextlib.suppress(ZeroDivisionError):

@@ -51,7 +51,8 @@ def test_raises() -> None:
 
 
 def test_approx() -> None:
-    assert 0.1 + 0.2 == pytest.approx(0.3)
+    total = 0.1 + 0.2
+    assert total == pytest.approx(0.3)
 
 
 # --- fixture with teardown (yield) ---------------------------------------------------
@@ -77,4 +78,4 @@ def test_skipped() -> None:
 
 @pytest.mark.xfail(reason="known bug")
 def test_expected_failure() -> None:
-    assert 1 == 2
+    assert int("1") == 2

@@ -70,7 +70,7 @@ print(m, f"{m:.3f}", format(m), bool(Meters(0)))
 try:
     m + "x"                                  # mypy allows it (object param); runtime rejects
 except TypeError as e:
-    print("TypeError:", e)                   # both __add__ and str.__radd__ gave up
+    print("TypeError:", e)                   # Meters.__add__ returned NotImplemented; str has no __radd__
 
 
 # --- ABCs: abstract methods, mixins for free, virtual subclasses -----------------------------------

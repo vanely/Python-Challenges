@@ -8,4 +8,4 @@ __pycache__/
 .ruff_cache/
 .nox/
 .coverage
-src/pkgtemplate/_version.py.bak
+src/pkgtemplate/_version.py

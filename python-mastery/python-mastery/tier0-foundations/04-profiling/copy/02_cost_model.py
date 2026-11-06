@@ -61,8 +61,21 @@ bench("tuple per element", "for x in data: t=(x,x)")
 bench("dict per element", "for x in data: d={'x':x,'y':x}")
 bench("dataclass per element", "for x in data: p=P(x,x)")
 bench("slots dataclass per element", "for x in data: p=PS(x,x)")
-import sys
-print(f"  sizeof P: {sys.getsizeof(P(1,1)) + sys.getsizeof(P(1,1).__dict__)} B   PS: {sys.getsizeof(PS(1,1))} B")
+import tracemalloc
+
+
+def bytes_per_instance(cls: type, n: int = 100_000) -> float:
+    # not getsizeof(obj.__dict__): on 3.11+ reading __dict__ creates a dict the instance didn't have
+    objs: list[object] = [None] * n            # allocated before tracing starts
+    tracemalloc.start()
+    for i in range(n):
+        objs[i] = cls(1, 1)                    # small ints are cached: only the instance is counted
+    size = tracemalloc.get_traced_memory()[0]
+    tracemalloc.stop()
+    return size / n
+
+
+print(f"  per instance (tracemalloc, 100k): P {bytes_per_instance(P):.0f} B   PS {bytes_per_instance(PS):.0f} B")
 
 print("== specialisation (3.11+): monomorphic vs polymorphic call site ==")
 bench("monomorphic ints", "for x in data: y=x+1")

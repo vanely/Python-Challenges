@@ -9,7 +9,7 @@ Everything referenced across tiers, in one place, with what to take from each. P
 | **CPython Internals** (Shaw) | 2 | With the CPython source checked out at the tag the book targets; run every experiment. |
 | **High Performance Python, 2nd ed.** (Gorelick & Ozsvald) | 0.4, 2 | Ch. 2 (profiling), 4–6 (dicts/sets, iterators, matrices), 7 (compiling), 9 (multiprocessing), 12 (field lessons). |
 | **Architecture Patterns with Python** (Percival & Gregory) | 1, 4 | Ch. 1–7 for repository/UoW/service layer vs what Django gives you; good for library-API thinking. |
-| **Robust Python** (Viafore) | 0.2 | Ch. 2–8 typing, 12–16 extensibility. Skim; you'll know half. |
+| **Robust Python** (Viafore) | 0.2 | Ch. 2–8 typing, 15–19 extensibility. Skim; you'll know half. |
 | **Python Testing with pytest, 2nd ed.** (Okken) | 0.5, 4 | Fixtures, parametrize, plugins, `conftest` scoping. |
 
 ## PEPs (read the PEP, not a summary)

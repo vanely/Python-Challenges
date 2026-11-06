@@ -99,6 +99,6 @@ del hs
 print("  after callers drop them:", len(_weak))
 
 print("=== who references this object? ===")
-target = object()
+target: list[int] = []                     # a container: a dict holding only object() isn't GC-tracked
 holder = {"k": target}
 print("  referrers:", [type(r).__name__ for r in gc.get_referrers(target) if r is not globals()])

@@ -30,7 +30,7 @@
 - Strings: immutable, `'` and `"` are identical, `"""` for multi-line. f-strings: `f"{name!r} has {len(items)} items, {price:.2f}"`.
 
 ### Truthiness — different from JS
-Falsy: `False`, `None`, `0`, `0.0`, `""`, `[]`, `{}`, `()`, `set()`. **Empty containers are falsy** — so `if items:` means "if non-empty." `==` is value equality (like `===` in spirit; no coercion surprises). `is` checks identity; use it only for `None`, `True`, `False`.
+Falsy: `False`, `None`, `0`, `0.0`, `""`, `[]`, `{}`, `()`, `set()`. **Empty containers are falsy** — so `if items:` means "if non-empty." `==` is value equality with no string↔number coercion, but `bool` is an `int` subclass: `True == 1` and `0 == False`. `is` checks identity; use it for `None` and sentinel objects. For booleans, just write `if flag:`.
 
 ### Sequences and slicing
 - `list` (mutable array), `tuple` (immutable, used for fixed-shape records), `str`, `range`.
@@ -77,7 +77,7 @@ Nested comprehensions read left-to-right like nested loops. If it needs more tha
 | `[...a, ...b]` | `[*a, *b]` or `a + b` |
 | `{...a, ...b}` | `{**a, **b}` or `a \| b` |
 | `Object.entries(o)` | `d.items()` |
-| `o?.k ?? d` | `d.get("k", d)` |
+| `o?.k ?? dflt` | `o.get("k", dflt)` (only when the key is missing). For null-coalescing: `v if (v := o.get("k")) is not None else dflt`. If `o` may be `None`: `(o or {}).get("k", dflt)` |
 | `null` / `undefined` | `None` |
 | `x === null` | `x is None` |
 | `` `${a} b` `` | `f"{a} b"` |

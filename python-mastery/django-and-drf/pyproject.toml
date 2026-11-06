@@ -1,0 +1,42 @@
+[project]
+name = "trackr"
+version = "0.1.0"
+description = "Stage 2 guided project: an issue tracker built with Django, then exposed with DRF"
+requires-python = ">=3.12"
+dependencies = [
+    "django>=6.1,<6.2",
+    "djangorestframework>=3.18,<3.19",
+    "django-filter>=26.2",
+    "drf-spectacular>=0.30",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9",
+    "pytest-django>=4.14",
+    "factory-boy>=3.3",
+    "ruff>=0.14",
+]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings"
+pythonpath = ["trackr"]
+testpaths = ["trackr"]
+addopts = ["-ra", "--import-mode=importlib"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = ["**/migrations/**"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "DJ"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["accounts", "tracker", "api", "config"]
+
+[tool.ruff.lint.per-file-ignores]
+"checkpoints/**" = ["E501"]

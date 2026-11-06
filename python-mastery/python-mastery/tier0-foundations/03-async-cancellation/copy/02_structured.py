@@ -45,10 +45,10 @@ async def demo_gather_return_exceptions() -> None:
 async def demo_timeout_scope() -> None:
     print("--- timeout as a cancel scope over a whole block ---")
     try:
-        async with asyncio.timeout(0.03):
-            await job("a", 0.01)
-            await job("b", 0.05)               # deadline hits here
-            await job("c", 0.01)               # never runs
+        async with asyncio.timeout(0.2):
+            await job("a", 0.05)
+            await job("b", 0.5)                # deadline hits here
+            await job("c", 0.05)               # never runs
     except TimeoutError:
         print("  block timed out as a unit")
 

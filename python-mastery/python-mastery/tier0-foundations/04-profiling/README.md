@@ -42,7 +42,7 @@ Competitive programming trains guessing at hot spots. Production trains measurin
 ### CPython cost model (rules of thumb, 3.12)
 - A Python function call is ~50–100 ns; a method call slightly more; attribute lookup on an instance ~20–40 ns. Inner loops that call a small function per element are dominated by call overhead → inline or vectorise.
 - `for` loop appending: ~1.5–2× slower than a comprehension; both ~10–50× slower than a numpy op on the same data.
-- Global name lookup > local. Bind hot globals/attributes to locals before a tight loop (`append = out.append`).
+- Global name lookup > local. Hoisting module globals to locals before a tight loop still helps; hoisting bound methods like `append = out.append` is neutral or slower on 3.11+, because the specializing interpreter already optimises `obj.method(...)`.
 - String concatenation in a loop is O(n²) in principle; CPython has an optimisation that often hides it; `"".join()` anyway.
 - `x in list` is O(n); `in set/dict` is O(1). Converting once and probing many times wins past ~10 elements.
 - Allocation is expensive: creating a tuple/dict/object per element is often the real cost. `__slots__` cuts per-instance memory ~40–50% and speeds attribute access slightly.
@@ -51,7 +51,7 @@ Competitive programming trains guessing at hot spots. Production trains measurin
 - The GIL: threads don't help pure-Python CPU work; they do help I/O and C-extension work that releases the GIL (numpy, hashlib, zlib, most DB drivers).
 
 ### Reading `pstats`
-`ncalls` (primitive/total for recursion), `tottime` (own time), `cumtime` (incl. callees). Sort by `cumtime` to find the subtree; by `tottime` to find the function to fix. `print_callers("name")` tells you *who* calls the hot function — often the fix is fewer calls, not a faster function.
+`ncalls` (total/primitive when recursive, e.g. `3/1`), `tottime` (own time), `cumtime` (incl. callees). Sort by `cumtime` to find the subtree; by `tottime` to find the function to fix. `print_callers("name")` tells you *who* calls the hot function — often the fix is fewer calls, not a faster function.
 
 ### Vectorise or compile?
 - **Algorithmic** first: the O(n²)→O(n log n) change beats everything else.

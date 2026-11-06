@@ -78,6 +78,20 @@ def test_unbounded_recursion() -> None:
     assert fib.cache_info().currsize == 301
 
 
+@pytest.mark.parametrize("size", [0, -1])
+def test_zero_or_negative_maxsize_disables_caching(size: int) -> None:
+    calls = []
+
+    @lru(maxsize=size)
+    def f(x: int) -> int:
+        calls.append(x)
+        return x
+
+    assert f(1) == 1 and f(1) == 1
+    assert calls == [1, 1]
+    assert f.cache_info() == (0, 2, 0, 0)
+
+
 def test_threads() -> None:
     @lru(maxsize=50)
     def f(x: int) -> int:

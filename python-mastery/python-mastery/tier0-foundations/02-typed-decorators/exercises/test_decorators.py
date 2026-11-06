@@ -26,7 +26,7 @@ def test_debounce() -> None:
 
     assert f(1) == 1
     assert f(2) is None
-    time.sleep(0.06)
+    time.sleep(0.15)
     assert f(3) == 3
 
 

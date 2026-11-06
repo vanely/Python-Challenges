@@ -1,4 +1,5 @@
 """0.3 — Graceful shutdown. Run it, then in another terminal: kill -TERM <pid>  (or Ctrl-C).
+On Windows only Ctrl-C works: there is no SIGTERM delivery (`taskkill /F` is a hard kill).
 
 Pattern: signal -> Event; workers check the event; drain with a grace deadline; exit code.
 """
@@ -46,8 +47,16 @@ async def main() -> int:
         received["sig"] = int(sig)
         stop.set()
 
-    for s in (signal.SIGINT, signal.SIGTERM):
-        loop.add_signal_handler(s, on_signal, s)
+    sigs = (signal.SIGINT, signal.SIGTERM)
+    previous = {s: signal.getsignal(s) for s in sigs}
+    try:
+        for s in sigs:
+            loop.add_signal_handler(s, on_signal, s)
+        posix = True
+    except NotImplementedError:                       # Windows: no loop signal API; only Ctrl-C arrives
+        posix = False
+        for s in sigs:
+            signal.signal(s, lambda n, _f: loop.call_soon_threadsafe(on_signal, signal.Signals(n)))
 
     queue: asyncio.Queue[int] = asyncio.Queue(maxsize=10)
     log.info("pid %d starting", os.getpid())
@@ -68,8 +77,11 @@ async def main() -> int:
     except* TimeoutError:
         failed = True                                 # (return/break not allowed in except*)
     finally:
-        for s in (signal.SIGINT, signal.SIGTERM):
-            loop.remove_signal_handler(s)
+        for s in sigs:
+            if posix:
+                loop.remove_signal_handler(s)
+            else:
+                signal.signal(s, previous[s] or signal.SIG_DFL)
     if failed:
         return 1
     sig = received.get("sig")

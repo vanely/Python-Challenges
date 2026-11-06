@@ -5,7 +5,7 @@ from datetime import datetime
 
 
 def parse(line: str) -> tuple[str, int, str, str, int]:
-    m = re.match(r"(\S+) (\d+) (\S+) user=(\S+) latency_ms=(\d+)", line)   # compiled per call
+    m = re.match(r"(\S+) (\d+) (\S+) user=(\S+) latency_ms=(\d+)", line)   # re cache lookup per call
     assert m
     ts = datetime.fromisoformat(m.group(1))                                # full parse, unused precision
     return ts.strftime("%Y-%m-%d"), int(m.group(2)), m.group(3), m.group(4), int(m.group(5))

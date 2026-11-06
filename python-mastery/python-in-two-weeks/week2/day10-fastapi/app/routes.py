@@ -3,6 +3,8 @@ from __future__ import annotations
 from typing import Annotated
 
 from fastapi import APIRouter, Query, status
+from fastapi.exceptions import RequestValidationError
+from pydantic import ValidationError
 
 from app.deps import Repo
 from app.schemas import NoteIn, NoteOut, NoteUpdate, Page
@@ -34,7 +36,10 @@ def get_note(note_id: int, repo: Repo) -> NoteOut:
 
 @router.patch("/{note_id}")
 def update_note(note_id: int, data: NoteUpdate, repo: Repo) -> NoteOut:
-    return repo.update(note_id, data.model_dump(exclude_unset=True))
+    try:
+        return repo.update(note_id, data.model_dump(exclude_unset=True))
+    except ValidationError as e:  # re-validation in the repo; only RequestValidationError → 422
+        raise RequestValidationError(e.errors()) from e
 
 
 @router.delete("/{note_id}", status_code=status.HTTP_204_NO_CONTENT)

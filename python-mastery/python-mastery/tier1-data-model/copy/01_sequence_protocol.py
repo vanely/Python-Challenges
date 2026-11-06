@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import bisect
+import itertools
 from collections import ChainMap, UserDict
 from collections.abc import Iterator, Sequence
 from typing import Any, overload
@@ -32,7 +33,7 @@ print(len(d), d[0], d[-1], d[12:15])
 print("A of spades" in d)                   # __contains__ from Sequence mixin
 print(list(reversed(d))[:2])                # __reversed__ mixin
 print(d.index("K of hearts"), d.count("2 of clubs"))
-for card in d[:3]:                          # __iter__ mixin via __getitem__
+for card in itertools.islice(d, 3):         # __iter__ mixin via __getitem__ (d[:3] would be a list)
     print(" ", card)
 
 # special methods are looked up on the TYPE

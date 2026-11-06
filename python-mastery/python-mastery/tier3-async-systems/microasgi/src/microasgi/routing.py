@@ -43,6 +43,17 @@ def compile_path(path: str) -> tuple[re.Pattern[str], dict[str, Callable[[str], 
     return re.compile(regex), convertors
 
 
+def get_route_path(scope: Scope) -> str:
+    """The part of `path` this app routes on. ASGI `path` is the full request target and
+    is never rewritten; `root_path` is the prefix the app is mounted under (by a `Mount`
+    or `uvicorn --root-path`). Same as Starlette's `get_route_path`."""
+    path: str = scope["path"]
+    root: str = scope.get("root_path", "")
+    if root and path.startswith(root) and path[len(root) : len(root) + 1] in ("", "/"):
+        return path[len(root) :] or "/"
+    return path
+
+
 class Route:
     def __init__(self, path: str, endpoint: Handler, methods: list[str] | None = None) -> None:
         self.path = path
@@ -59,7 +70,7 @@ class Route:
         """Returns (path_matched, method_allowed, path_params)."""
         if scope["type"] != "http":
             return False, False, {}
-        m = self.regex.match(scope["path"])
+        m = self.regex.match(get_route_path(scope))
         if not m:
             return False, False, {}
         params = {k: self.convertors[k](v) for k, v in m.groupdict().items()}
@@ -84,7 +95,7 @@ class WebSocketRoute:
     def match(self, scope: Scope) -> tuple[bool, bool, dict[str, Any]]:
         if scope["type"] != "websocket":
             return False, False, {}
-        m = self.regex.match(scope["path"])
+        m = self.regex.match(get_route_path(scope))
         if not m:
             return False, False, {}
         return True, True, {k: self.convertors[k](v) for k, v in m.groupdict().items()}
@@ -100,19 +111,17 @@ class Mount:
     def __init__(self, path: str, app: ASGIApp) -> None:
         self.path = path.rstrip("/")
         self.app = app
-        self.regex = re.compile("^" + re.escape(self.path) + r"(?P<rest>/.*)?$")
+        self.regex = re.compile("^" + re.escape(self.path) + r"(/.*)?$")
 
     def match(self, scope: Scope) -> tuple[bool, bool, dict[str, Any]]:
         if scope["type"] not in ("http", "websocket"):
             return False, False, {}
-        m = self.regex.match(scope["path"])
-        return (True, True, {"__rest__": m.group("rest") or "/"}) if m else (False, False, {})
+        m = self.regex.match(get_route_path(scope))
+        return (True, True, {}) if m else (False, False, {})
 
     async def handle(self, scope: Scope, receive: Receive, send: Send) -> None:
-        rest = scope["path_params"].pop("__rest__")
         child = dict(scope)
-        child["root_path"] = scope.get("root_path", "") + self.path
-        child["path"] = rest
+        child["root_path"] = scope.get("root_path", "") + self.path   # `path` stays the full target
         await self.app(child, receive, send)
 
 

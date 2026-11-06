@@ -53,7 +53,7 @@ myproj/
 - A directory with `__init__.py` is a package; `__init__.py` can be empty or re-export the public API.
 - Absolute imports (`from myproj.util import f`) always. Relative (`from .util import f`) only inside a package, sparingly.
 - `if __name__ == "__main__":` guards script code so importing the module doesn't run it.
-- `python -m pkg.module` runs a module as a script with the package on `sys.path`. Prefer it over `python path/to/file.py`.
+- `python -m pkg.module` runs a module as a script, with the current directory on `sys.path` and `__package__` set (so relative imports work). Prefer it over `python path/to/file.py`.
 - `ModuleNotFoundError` is almost always: (a) not installed in *this* venv, (b) running from the wrong directory without src layout, (c) a typo in `__init__.py` re-exports.
 
 ### pytest — the 95%

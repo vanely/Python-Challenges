@@ -35,7 +35,8 @@ dis.dis(comp)
 
 
 class C:
-    attr = 1
+    def __init__(self) -> None:
+        self.attr = 1                       # instance attribute -> LOAD_ATTR_INSTANCE_VALUE when warm
 
     def m(self, x: int) -> int:
         return self.attr + x

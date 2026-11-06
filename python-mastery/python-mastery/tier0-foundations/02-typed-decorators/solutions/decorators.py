@@ -36,7 +36,7 @@ def debounce(seconds: float) -> Callable[[Callable[P, R]], Callable[P, R | None]
         @functools.wraps(fn)
         def wrapper(*args: P.args, **kwargs: P.kwargs) -> R | None:
             nonlocal last
-            now = time.monotonic()
+            now = time.perf_counter()
             if now - last < seconds:
                 return None
             last = now
