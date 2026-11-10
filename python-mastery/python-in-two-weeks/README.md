@@ -47,12 +47,14 @@ python --version                                     # Python 3.12.x
 
 On macOS/Linux, install uv with `curl -LsSf https://astral.sh/uv/install.sh | sh`.
 
-`day05-tooling` and `day10-fastapi` each have a `pyproject.toml`. Run `uv sync` inside the folder, then `uv run pytest`, `uv run mypy src` and so on. With `uv run` you don't need to activate anything.
+`day05-tooling` has a `pyproject.toml`. Run `uv sync` inside the folder, then `uv run pytest` and `uv run mypy src`. With `uv run` you don't need to activate anything.
 
-The two projects, `fetchr` and `docpipe`, are **guided builds**. You create the project yourself with `uv init --package`, then work through `steps/01-…` to `steps/05-…`:
+Days 10 and 11 are short guided builds as well (`steps/`, `checkpoints/`, a `reference/` you open at the end). The two projects, `fetchr` and `docpipe`, are the long ones. You create each project yourself with `uv init`, then work through `steps/01-…`:
 - each step explains the concepts, gives you code to type, and leaves one part for you to write;
 - a test suite you didn't write (`checkpoints/`) checks each step;
 - a finished, tested solution sits in `reference/`. Open it only after your checkpoints pass, then diff it against your code.
+
+Day 1's exercise answers are `day01-02-syntax/reference/solutions/`. Same rule: pytest first.
 
 ## After this
 

@@ -43,5 +43,13 @@ Descriptor validation; field collection and inheritance (abstract base with shar
 - `select_related`-style JOIN.
 - `Q` objects with `&`/`|`/`~` via operator overloading.
 
-## Reference
-`src/tinyorm/` is a full implementation with `tests/`. Run `pytest`, `mypy --strict src`, `ruff check .`.
+## How to work
+`steps/01` through `steps/03` say which tests should pass. Create the package one directory down from this folder, so the checkpoint path resolves:
+
+```bash
+uv init --package student
+cd student
+uv run pytest ../checkpoints/test_orm.py
+```
+
+`reference/tinyorm/` is a finished implementation. Open it only after the checkpoint is green, then diff. Its own `tests/` are the same spec.

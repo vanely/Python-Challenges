@@ -51,4 +51,6 @@ Even if you never do "data science," this is where Python dominates and you'll b
 `codebase-reading/README.md`, Day 11 (`sqlite3/__init__.py` context manager; polars expression API surface).
 
 ## Build task (90 min)
-Replace Day 10's `MemoryRepo` with `SqliteRepo` (same `Protocol`), using `sqlite3` directly with a `notes` table and a `note_tags` table. Keep the tests passing by overriding the dependency with a `:memory:` repo. Then write `report.py` that loads all notes into polars and prints notes-per-tag and notes-per-day.
+`steps/01-sqlite-repo.md` then `steps/02-report.md`. Checkpoints import `notesql` from the project you run pytest in. `reference/notesql/` is the finished store and report; open it after `uv run pytest ../checkpoints` passes.
+
+The same `SqliteRepo` can implement Day 10's `NoteRepo` protocol. Override `get_repo` in the Day 10 tests with `SqliteRepo(":memory:")` and keep those tests green.

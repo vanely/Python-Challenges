@@ -43,7 +43,7 @@ Django apps are deployed, not published. This module is everything between "work
 
 ### Versioning
 - SemVer: MAJOR (breaking), MINOR (features), PATCH (fixes). Pre-releases `1.0.0rc1`; PEP 440 governs Python's exact grammar (`packaging.version.Version` parses it).
-- Single source of truth: either `__version__` read by the backend, or **derived from git tags** (`hatch-vcs` / `setuptools-scm`) so a release is `git tag v1.2.0 && git push --tags` and CI does the rest.
+- Single source of truth: either `__version__` read by the backend, or **derived from git tags** (`hatch-vcs` / `setuptools-scm`) so a release is `git tag v1.2.0 && git push --tags` and CI does the rest. A package that lives inside a larger repo, like this course, also needs `search_parent_directories = true` under `[tool.hatch.version.raw-options]`, or setuptools-scm stops at the package directory and reports that it found no repository.
 - Deprecate before removing: `warnings.warn("...", DeprecationWarning, stacklevel=2)` for at least one MINOR; document in CHANGELOG under "Deprecated".
 
 ### nox
@@ -55,7 +55,7 @@ A `noxfile.py` with sessions (`tests`, `lint`, `typecheck`, `docs`), each in its
 - TestPyPI first, always: `uv publish --publish-url https://test.pypi.org/legacy/`.
 
 ## Copy
-`pkgtemplate/` — a complete, buildable, CI-ready package. Type out `pyproject.toml`, `noxfile.py`, and both workflows; read every key. Then:
+`pkgtemplate/` is the package you work in. Type out `pyproject.toml`, `noxfile.py`, and both workflows; read every key. `src/pkgtemplate/core.py` is a stub — implement it against `steps/01-api.md` and `checkpoints/test_pkg.py` before you open `reference/pkgtemplate/`, which is a finished copy of the same tree. Then:
 ```bash
 cd pkgtemplate && uv sync && uv run nox -s lint typecheck tests
 uv build && ls dist/          # sdist + wheel

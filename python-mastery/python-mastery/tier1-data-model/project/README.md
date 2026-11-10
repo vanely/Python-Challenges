@@ -8,7 +8,7 @@
 - `.cache_info() -> CacheInfo(hits, misses, maxsize, currsize)`, `.cache_clear()`, `.cache_parameters()`, `__wrapped__`
 - Typed: `Callable[P, R] -> _LruWrapper[P, R]` (a Protocol or generic class exposing the extras)
 - Tests: eviction order, `typed`, kwargs order independence, thread hammering (no lost updates), recursion (`fib(300)`)
-Reference: `lru.py` + `test_lru.py`.
+Tests: `checkpoints/test_lru.py`. Reference: `reference/lru.py`, after the checkpoint passes. From this folder, `uv run --with pytest pytest checkpoints/test_lru.py` imports your `lru.py`.
 
 ## 2. `dataclass_lite.py` — `@record` (week 2)
 - Reads annotations from the class (`__annotations__`, respecting `ClassVar`), generates `__init__`, `__repr__`, `__eq__`, and `__hash__` (when `frozen=True`) **by building source text and `exec`-ing it**, exactly like `dataclasses`
@@ -17,7 +17,7 @@ Reference: `lru.py` + `test_lru.py`.
 - Inheritance: parent fields first, child overrides by name
 - `__match_args__`, `fields(cls)`, `asdict(obj)`, `replace(obj, **changes)`
 - Tests mirror `test_dataclasses.py` subsets
-Reference: `dataclass_lite.py` + `test_dataclass_lite.py`.
+Tests: `checkpoints/test_dataclass_lite.py`. Reference: `reference/dataclass_lite.py`, after the checkpoint passes.
 
 ## 3. `vector.py` — n-D Vector (week 3)
 Fluent Python ch. 12 + 16 in full, plus: `__bytes__`/`frombytes` with `array` + `memoryview`; `__format__` supporting `'h'` (hyperspherical) spec; `__matmul__`; `__hash__` via `reduce(xor)`; `__getattr__` for `x,y,z,t` **and** `__setattr__` rejecting single-letter lowercase names; slicing returns `Vector`; `__eq__` short-circuits on `len`; `__abs__`, `__neg__`, `__pos__`; `__add__/__radd__/__mul__/__rmul__` with `NotImplemented` on foreign types; pickle round-trip; `Vector` registered as `numbers.Real`? (decide, justify in NOTES). Test skeleton: `test_vector.py`.

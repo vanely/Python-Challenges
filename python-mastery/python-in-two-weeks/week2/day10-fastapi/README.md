@@ -39,17 +39,17 @@ If you've used Express/Hono/NestJS with zod, this is the closest thing Python ha
 - `/docs` (Swagger) and `/openapi.json` are generated from your types. Free.
 - Testing: `TestClient(app)` (sync, wraps `httpx2`, the maintained httpx successor) — no server needed.
 
-## Copy
-The `app/` package here is the reference. Type it out module by module, then run:
+## Build it, in order
+`steps/01-schemas-and-repo.md` then `steps/02-the-api.md`. You create a `notes/` project in this folder; the checkpoints import `app` from whichever directory you run pytest in. `reference/` is a finished app. Open it only after `uv run pytest ../checkpoints` passes, then diff.
+
 ```bash
-uv add fastapi uvicorn pydantic-settings && uv add --dev pytest httpx2
-uv run uvicorn app.main:app --reload
-uv run pytest
+cd notes && uv run uvicorn app.main:app --reload
 ```
+
 Open http://127.0.0.1:8000/docs.
 
 ## Analytical reading
 `codebase-reading/README.md`, Day 10 (`fastapi/routing.py`; `pydantic` `BaseModel` surface).
 
-## Build task (90 min)
-Extend the reference: add a `PATCH /notes/{id}` with a partial-update model (all fields optional; use `model_dump(exclude_unset=True)`), pagination on `GET /notes` (`limit`/`offset` with `Field(le=100)`), a `Settings` class with `APP_NAME` and `MAX_NOTES` from env, and an exception handler for `NoteNotFound`. Tests for each. Then swap the in-memory repo for SQLite on Day 11.
+## After the checkpoints
+The checkpoints already require PATCH, pagination, settings, and `NoteNotFound`. Day 11 swaps the repo for SQLite behind the same `NoteRepo` protocol. Answer the step questions in `NOTES.md`.

@@ -1,5 +1,7 @@
 # logparse_rs — Rust/PyO3 extension scaffold (unbuilt here; build locally)
 
+This directory is the baseline you extend (parallel parse, columnar output, free-threading, abi3). It is not hidden under `reference/`, because the lesson starts by building and measuring this scaffold. Read `tests/test_native.py` and write down the function signature in `NOTES.md` before you read `src/lib.rs`.
+
 ```bash
 winget install Rustlang.Rustup               # once, Windows (needs MSVC build tools); macOS/Linux: curl https://sh.rustup.rs -sSf | sh
 uv pip install maturin pytest

@@ -1,11 +1,14 @@
 # microasgi — build Starlette to understand Starlette
 
-~450 lines of framework, 12 tests, runs under uvicorn. This is a **reference implementation**: build your own from the spec first, then diff against this one.
+~450 lines of framework, 12 tests, runs under uvicorn. Build yours from the spec in `steps/`, as a package named `student/` in this folder. The finished package is `reference/microasgi/` — open `src/` only after `uv run pytest ../checkpoints/test_microasgi.py` is green from `student/`.
+
+The reference, once you're allowed to look:
 
 ```
-pip install -e ".[dev]"
-pytest
-uvicorn example:app --reload
+cd reference/microasgi
+uv sync --extra dev
+uv run pytest
+uv run uvicorn example:app --reload
 curl localhost:8000/items/1
 curl -N localhost:8000/events          # SSE
 ```

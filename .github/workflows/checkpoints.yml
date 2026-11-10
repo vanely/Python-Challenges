@@ -1,0 +1,70 @@
+name: checkpoints
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  checkpoints:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+
+      - name: fetchr
+        working-directory: python-mastery/python-in-two-weeks/week1/day06-07-project1-cli/reference/fetchr
+        run: |
+          uv run pytest
+          uv run pytest ../../checkpoints
+
+      - name: docpipe
+        working-directory: python-mastery/python-in-two-weeks/week2/day12-14-project2-docpipe/reference/docpipe
+        run: |
+          uv run pytest
+          uv run pytest ../../checkpoints
+
+      - name: day 10 notes API
+        working-directory: python-mastery/python-in-two-weeks/week2/day10-fastapi/reference
+        run: uv run pytest ../checkpoints
+
+      - name: day 11 notesql
+        working-directory: python-mastery/python-in-two-weeks/week2/day11-data-sql/reference
+        run: uv run pytest ../checkpoints
+
+      - name: tinyorm
+        working-directory: python-mastery/python-mastery/tier0-foundations/01-descriptors-metaclasses/tinyorm/reference/tinyorm
+        run: |
+          uv run pytest
+          uv run pytest ../../checkpoints
+
+      - name: fetchd
+        working-directory: python-mastery/python-mastery/tier0-foundations/03-async-cancellation/project/reference
+        run: |
+          uv run pytest
+          uv run pytest ../checkpoints
+
+      - name: microasgi
+        working-directory: python-mastery/python-mastery/tier3-async-systems/microasgi/reference/microasgi
+        run: |
+          uv sync --extra dev
+          uv run pytest
+          uv run pytest ../../checkpoints
+
+      - name: pkgtemplate
+        working-directory: python-mastery/python-mastery/tier0-foundations/05-packaging/pkgtemplate/reference/pkgtemplate
+        run: |
+          uv sync
+          uv run pytest
+          uv run pytest ../../checkpoints
+
+      - name: tier 1 references
+        working-directory: python-mastery/python-mastery/tier1-data-model/project
+        run: CHECK_REFERENCE=1 uv run --with pytest pytest checkpoints
+
+      - name: profiling v1
+        working-directory: python-mastery/python-mastery/tier0-foundations/04-profiling/lab
+        run: CHECK_REFERENCE=1 uv run --with pytest pytest checkpoints

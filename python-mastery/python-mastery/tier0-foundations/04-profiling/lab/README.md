@@ -12,7 +12,9 @@ someone in a hurry would write it. It is slow on purpose, in *several* distinct 
 5. Write `v3_cython.pyx` (+ `setup.py` or `pyproject` with `cythonize`): the parse loop in Cython with typed variables. Compare against v1.
 6. `bench.py` runs all versions on the same file, checks outputs match, and prints a table. Fill `REPORT.md` with the numbers and *why* each change mattered.
 
-Reference implementations for v1/v2/v3 are here — do yours first. The reference numbers on the authoring machine (1 polars thread, 3.12, 200k lines):
+`v0_baseline.py` stays here; it is the thing you profile, not the thing you fix in place. `reference/` has v1, v2, v3, `v3_parse.pyx`, and `setup.py`. Write `v1_algorithmic.py` in this folder. `checkpoints/test_v1_matches.py` checks that it matches v0 (rank excluded) and fails if the only copy it can see is `reference/`.
+
+The reference numbers on the authoring machine (1 polars thread, 3.12, 200k lines):
 
 | version | seconds | speedup |
 |---|---|---|

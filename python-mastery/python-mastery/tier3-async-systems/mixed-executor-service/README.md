@@ -1,6 +1,6 @@
 # mixed-executor-service — spec (you build it)
 
-A service on your `microasgi` that correctly mixes the three execution contexts every real Python backend ends up with, and shuts down cleanly. No reference implementation — the point is to hit the deadlocks yourself.
+A service on your `microasgi` that correctly mixes the three execution contexts every real Python backend ends up with, and shuts down cleanly. There is no `reference/` implementation. The deadlocks and the shutdown order are the lesson, and a finished service sitting next to this file would let you skip them. Write the answers in the stage [`NOTES.md`](../../NOTES.md).
 
 ## Endpoints
 | Route | Work | Where it must run |

@@ -21,5 +21,11 @@ async with Fetcher(concurrency=10, rate=5.0, burst=5, timeout=5.0, retries=3, tr
 ## Tests to write
 Token bucket: timing with a fake clock. Rate + concurrency limits actually enforced (count peak in-flight; assert timestamps). Retry: 503 then 200 → 2 attempts; 404 → 1 attempt, recorded as error. Timeout per request recorded, run continues. Global deadline cancels remaining with correct results. Cancellation mid-run: cancel the consumer task, assert in-flight requests were cancelled and the `Fetcher` exited cleanly (no "Task was destroyed but it is pending" warnings — assert via `pytest.warns`/`recwarn`). Signal handling: run `main()` in a subprocess against a local socket that accepts but never replies, send SIGTERM once it has connected (not after a `sleep`), assert exit 143; in-process, `signal.raise_signal(SIGINT)` mid-request → 130 after the grace period.
 
-## Reference
-`fetchd.py` + `test_fetchd.py`. Run `pytest -q` (needs `pytest-asyncio`, `httpx`).
+## How to work
+`steps/01` to `steps/03`. Put `fetchd.py` in a directory, install `pytest`, `pytest-asyncio`, and `httpx`, and from that directory run:
+
+```bash
+uv run pytest ../checkpoints/test_fetchd.py
+```
+
+`pytest.ini` next to the steps turns on asyncio mode. `reference/fetchd.py` is the finished module. Open it after the checkpoint is green.

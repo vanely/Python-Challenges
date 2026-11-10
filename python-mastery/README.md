@@ -14,7 +14,7 @@ Why this order: Stage 3's first module opens with "you've used `class Article(mo
 
 1. **Feedback before progress.** Every stage has tests you didn't write: Stage 1's exercises and project suites, Stage 2's `checkpoints/`, and Stage 3's project test suites. Don't move on while they're red.
 2. **Write the explanation down.** Each stage has a `NOTES.md` or journal. Fill in the day's or step's answers before starting the next one. If you can't explain something without re-reading, you haven't learned it yet.
-3. **Reference implementations come last.** Where a finished solution exists (Stage 1 projects, Stage 3 projects), open it only after your own version passes. Stage 2 deliberately ships none.
+3. **Reference implementations come last.** Where a finished solution exists (Stage 1 projects, Days 10–11, Stage 3 projects), it is under `reference/`. Open it only after your own version passes. Stage 2 deliberately ships none. Stage 3's mixed-executor service ships none on purpose.
 4. **Copying is for syntax, not understanding.** Typing out `copy/` files is useful for the first few days of Stage 1. After that, read each file, predict its output, then run it. Break it on purpose and predict the error.
 
 ## Setup (once, Windows + Git Bash)

@@ -37,6 +37,7 @@ Changelog = "https://github.com/you/pkgtemplate/blob/main/CHANGELOG.md"
 source = "vcs"                             # git describe -> 1.2.0, 1.2.1.dev3+g<sha>, ...
 [tool.hatch.version.raw-options]
 local_scheme = "no-local-version"          # TestPyPI rejects local versions (+gabc123)
+search_parent_directories = true           # this package lives inside the course repo, not its own git root
 [tool.hatch.build.hooks.vcs]
 version-file = "src/pkgtemplate/_version.py"     # generated on install/build; gitignored
 

@@ -20,7 +20,7 @@ Tiers 0–3 take roughly 9–12 months. The build tasks are the expensive part. 
 Every module folder has:
 - `README.md` — objectives, readings (where to find them + summaries of the parts that matter), the analysis prompts, and the build spec
 - `copy/` — annotated reference code to **type out by hand** and then modify; each file runs and is `mypy --strict` clean unless the README says otherwise
-- a project folder with a spec and, where it exists, a tested reference implementation to diff against **after** you build your own
+- a project folder with a spec, `steps/`, and `checkpoints/` you didn't write. A finished implementation, where one exists, is under `reference/`. Open it after your checkpoints pass. `mixed-executor-service/` has no reference on purpose: the bugs are the lesson. `rust-ext/` is a scaffold you extend, not a solution you are hiding from.
 
 Rhythm per week (~9 hrs): 2 hrs reading, 2 hrs copying + modifying, 2 hrs reading library/CPython source against the prompts, 3 hrs building.
 
@@ -59,4 +59,4 @@ Some demos are POSIX-only (Unix signal handlers, `fork`). Each one says so and s
 1. `mypy --strict` and `ruff check` on everything you write. No exceptions for "it's just a script."
 2. Type out `copy/` files; then break them on purpose and predict the failure before running.
 3. Read the linked source *before* the README summary tells you what it does. Summaries are for checking, not replacing.
-4. Every project ends with a short written retrospective (`NOTES.md`). Mastery is mostly the ability to explain.
+4. Every project ends with a short written retrospective in [`NOTES.md`](NOTES.md). Mastery is mostly the ability to explain.

@@ -59,7 +59,7 @@ JSON, `**kwargs` passthrough to a third-party API, dynamic plugins. Prefer `obje
 `copy/02_generics_protocols.py` — variance demos (with the errors mypy produces, as comments), Protocol vs ABC, `overload`, narrowing, `Self`, `TypeVarTuple`.
 
 ## Exercises
-`exercises/` — 8 decorators with tests and a mypy target. `solutions/` when you're done.
+`exercises/` — 8 decorators with tests and a mypy target. `reference/solutions/` after those tests pass, not before.
 
 ## Analysis prompts
 1. In typeshed's `functools.pyi`, how is `lru_cache` typed? Why does it return `_lru_cache_wrapper[T]` rather than `Callable[P, T]`? What's lost?

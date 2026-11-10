@@ -93,7 +93,7 @@ Nested comprehensions read left-to-right like nested loops. If it needs more tha
 `copy/01_basics.py` → `copy/02_collections.py` → `copy/03_functions.py` → `copy/04_comprehensions.py`
 
 ## Exercises
-`copy/exercises.py` — 15 functions with docstrings and a stub body. Fill them in; `pytest copy/test_exercises.py` checks them. Solutions in `solutions/`.
+`copy/exercises.py` — 15 functions with docstrings and a stub body. Fill them in; `pytest copy/test_exercises.py` checks them. `reference/solutions/` has the exercises and `wordfreq.py`. Open it only after your tests pass, then diff.
 
 ## Analytical reading
 `codebase-reading/README.md`, Day 1–2 section (`rich/text.py` slicing and `Text.__add__`).

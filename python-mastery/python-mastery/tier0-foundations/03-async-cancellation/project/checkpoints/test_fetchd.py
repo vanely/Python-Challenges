@@ -175,7 +175,7 @@ async def test_sigint_grace_then_cancel(caplog: pytest.LogCaptureFixture) -> Non
 
 @pytest.mark.skipif(sys.platform == "win32", reason="POSIX signals")
 async def test_sigterm_exit_code() -> None:
-    script = Path(__file__).with_name("fetchd.py")
+    script = Path(fetchd.__file__)
     with socket.create_server(("127.0.0.1", 0)) as srv:   # accepts, never replies
         srv.settimeout(10)
         port = srv.getsockname()[1]

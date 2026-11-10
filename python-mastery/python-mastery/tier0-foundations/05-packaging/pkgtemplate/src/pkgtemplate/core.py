@@ -1,28 +1,15 @@
-"""Core functions."""
+"""Core functions. You write these; see steps/01-api.md. Don't open reference/ yet."""
 
 from __future__ import annotations
 
-import re
-import warnings
-
-_NON_WORD = re.compile(r"[^a-z0-9]+")
-
 
 def slugify(text: str, *, sep: str = "-") -> str:
-    """Lowercase, replace non-alphanumerics with ``sep``, trim.
-
-    >>> slugify("Hello, World!")
-    'hello-world'
-    """
-    return _NON_WORD.sub(sep, text.lower()).strip(sep)
+    raise NotImplementedError
 
 
 def greet(name: str) -> str:
-    """Return a greeting."""
-    return f"Hello, {name}!"
+    raise NotImplementedError
 
 
 def old_greet(name: str) -> str:
-    """Return a greeting (deprecated alias for :func:`greet`; removed in 1.0)."""
-    warnings.warn("old_greet() is deprecated; use greet()", DeprecationWarning, stacklevel=2)
-    return greet(name)
+    raise NotImplementedError
