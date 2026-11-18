@@ -1,11 +1,13 @@
 # Round 1 — Practical Python Practice (Leader Bank prep)
 
-Eight short problems, each sized for a 20–30 minute interview round.
+Eight short problems, each sized for a 20–30 minute interview round — plus a
+dates mini-set for business-day calendar work.
 
 ## Folder layout
 
 ```
 round_1/
+  00_dates_manipulation/   <- four business-day / calendar problems
   01_transaction_summary/
     README.md            <- the problem description (read this first)
     practice/practice.py <- starter code: YOU fill in the functions
@@ -43,6 +45,7 @@ Every file runs on its own, with no installs needed (standard library only).
 
 | # | Folder | Skill it practices |
 |---|--------|--------------------|
+| 0 | `00_dates_manipulation` | business days, holidays, monthly schedules (4 problems) |
 | 1 | `01_transaction_summary` | dicts, `defaultdict`, processing records in order |
 | 2 | `02_routing_number` | input validation, string → digits, checksums |
 | 3 | `03_bank_account` | classes, custom exceptions, keeping state consistent |
@@ -51,3 +54,5 @@ Every file runs on its own, with no installs needed (standard library only).
 | 6 | `06_suspicious_withdrawals` | sliding window with a `deque` |
 | 7 | `07_top_merchants` | `Counter`, sorting with tie-breaks |
 | 8 | `08_paginated_api_client` | pagination, retries, exponential backoff, error types |
+
+Start the dates set at [`00_dates_manipulation/README.md`](00_dates_manipulation/README.md).

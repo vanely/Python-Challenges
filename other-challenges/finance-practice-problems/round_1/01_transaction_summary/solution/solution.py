@@ -11,7 +11,6 @@ from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 # One cent. We use this to round every amount to 2 decimal places.
 CENT = Decimal("0.01")
 
-
 def parse_amount(raw_amount):
     """
     Turn a string like "120.50" into a Decimal rounded to the cent.

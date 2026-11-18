@@ -18,13 +18,32 @@ def parse_amount(raw_amount):
     Hint: Decimal(raw_amount).quantize(CENT, rounding=ROUND_HALF_UP), and catch InvalidOperation.
     """
     # TODO
-    raise NotImplementedError
+    try:
+        return Decimal(raw_amount)#.quantize(CENT, rounding=ROUND_HALF_UP)
+    except (InvalidOperation, TypeError):
+        return None
 
+# parsed_val = parse_amount("120.49")
+# if parsed_val:
+#     print(parsed_val)
+# else:
+    # print("invalid entry")
 
 def summarize_transactions(transactions):
     """
     Return {"balances": {...}, "duplicate_ids": [...], "rejected_ids": [...]}.
     """
+    balances = defaultdict(lambda: Decimal("0.00"))
+
+    set_ids = set()
+    duplicate_ids = []
+    rejected_ids = []
+
+    for txn in transactions:
+        txn_id = txn["id"]
+        account = txn["account"]
+
+        balances[account]
     # TODO: keep a running balance per account (defaultdict is handy here)
     # TODO: track ids you've already seen so you can spot duplicates
     # TODO: reject invalid amounts, unknown types, and overdrafts
