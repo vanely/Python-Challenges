@@ -13,28 +13,36 @@ def is_business_day(d, holidays):
     True when d is Mon–Fri and not in holidays.
     Hint: d.weekday() is 0=Mon ... 6=Sun, so weekends are weekday() >= 5.
     """
-    # TODO
     return d.weekday() < 5 and d not in holidays
-
 
 def previous_business_day(d, holidays=None):
     """
     Return the nearest business day strictly before d.
     """
-    # TODO: treat None holidays as an empty set
     if holidays is None:
         holidays = set()
-    # TODO: start at d - 1 day, then keep stepping back until is_business_day
-    # print(f"starting date: {d}")
+
     separated_date = str(d).split("-")
-    # print(f"separated: {separated_date}")
     previous_date = date(int(separated_date[0]), int(separated_date[1]), int(separated_date[2])) - timedelta(days=1)
-    # cast_ready_previous_date = str(previous_date).split("-") 
-    # casted_previous_date = date(int(cast_ready_previous_date[0]), int(cast_ready_previous_date[1]), int(cast_ready_previous_date[2]))
-    print(f"is_business_day: {is_business_day(previous_date, holidays)}")
+
     if is_business_day(previous_date, holidays):
         return previous_date
+
     return previous_business_day(previous_date, holidays)
+
+# def previous_business_day(d, holidays=None):
+#     """
+#     Return the nearest business day strictly before d.
+#     """
+#     if not holidays:
+#         holidays = set()
+
+#     ONE_DAY = timedelta(days=1) 
+#     possible_previous_day = d - ONE_DAY
+
+#     while not is_business_day(possible_previous_day, holidays):
+#        possible_previous_day -= ONE_DAY
+#     return possible_previous_day 
 
 # previous_business_day(date(2026, 1, 7), holidays)
 # ---------------------------------------------------------------------------
